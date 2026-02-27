@@ -1,0 +1,141 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* Deep Navy + Emerald Green - Trust-evoking fintech palette */
+    --background: 220 25% 97%;
+    --foreground: 220 40% 13%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 220 40% 13%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 220 40% 13%;
+
+    /* Deep Navy primary */
+    --primary: 220 60% 18%;
+    --primary-foreground: 0 0% 100%;
+
+    /* Soft navy secondary */
+    --secondary: 220 30% 94%;
+    --secondary-foreground: 220 40% 18%;
+
+    --muted: 220 20% 94%;
+    --muted-foreground: 220 15% 50%;
+
+    --accent: 160 55% 40%;
+    --accent-foreground: 0 0% 100%;
+
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 220 20% 88%;
+    --input: 220 20% 88%;
+    --ring: 160 55% 40%;
+
+    --radius: 0.625rem;
+
+    /* Custom escrow tokens */
+    --emerald: 160 55% 40%;
+    --emerald-light: 160 50% 95%;
+    --emerald-foreground: 0 0% 100%;
+    --navy: 220 60% 18%;
+    --navy-light: 220 50% 28%;
+    --navy-dark: 220 65% 10%;
+    --gold: 40 85% 55%;
+    --gold-light: 40 80% 94%;
+    --success: 152 60% 42%;
+    --warning: 38 92% 50%;
+    --info: 210 80% 55%;
+
+    /* Gradients */
+    --gradient-hero: linear-gradient(135deg, hsl(220 60% 18%), hsl(220 50% 28%), hsl(160 55% 40%));
+    --gradient-card: linear-gradient(145deg, hsl(0 0% 100%), hsl(220 25% 97%));
+    --gradient-emerald: linear-gradient(135deg, hsl(160 55% 40%), hsl(160 60% 50%));
+
+    /* Shadows */
+    --shadow-sm: 0 1px 3px hsl(220 60% 18% / 0.06);
+    --shadow-md: 0 4px 12px hsl(220 60% 18% / 0.08);
+    --shadow-lg: 0 8px 30px hsl(220 60% 18% / 0.12);
+    --shadow-emerald: 0 4px 20px hsl(160 55% 40% / 0.25);
+
+    --sidebar-background: 0 0% 98%;
+    --sidebar-foreground: 240 5.3% 26.1%;
+    --sidebar-primary: 240 5.9% 10%;
+    --sidebar-primary-foreground: 0 0% 98%;
+    --sidebar-accent: 240 4.8% 95.9%;
+    --sidebar-accent-foreground: 240 5.9% 10%;
+    --sidebar-border: 220 13% 91%;
+    --sidebar-ring: 217.2 91.2% 59.8%;
+  }
+
+  .dark {
+    --background: 220 40% 7%;
+    --foreground: 220 15% 92%;
+
+    --card: 220 35% 12%;
+    --card-foreground: 220 15% 92%;
+
+    --popover: 220 35% 12%;
+    --popover-foreground: 220 15% 92%;
+
+    --primary: 160 55% 45%;
+    --primary-foreground: 220 60% 10%;
+
+    --secondary: 220 30% 18%;
+    --secondary-foreground: 220 15% 85%;
+
+    --muted: 220 25% 16%;
+    --muted-foreground: 220 15% 55%;
+
+    --accent: 160 50% 42%;
+    --accent-foreground: 0 0% 100%;
+
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 210 40% 98%;
+
+    --border: 220 25% 20%;
+    --input: 220 25% 20%;
+    --ring: 160 55% 45%;
+
+    --sidebar-background: 220 40% 8%;
+    --sidebar-foreground: 220 15% 85%;
+    --sidebar-primary: 160 55% 45%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 220 30% 15%;
+    --sidebar-accent-foreground: 220 15% 85%;
+    --sidebar-border: 220 25% 18%;
+    --sidebar-ring: 160 55% 45%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground font-sans antialiased;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Space Grotesk', sans-serif;
+  }
+}
+
+@layer utilities {
+  .glass {
+    @apply bg-card/80 backdrop-blur-md border border-border/50;
+  }
+
+  .text-gradient-hero {
+    background: var(--gradient-hero);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+}
