@@ -1,0 +1,84 @@
+name: CI Validation
+
+on:
+  pull_request:
+    branches: [main, develop]
+  push:
+    branches: [main, develop]
+
+# Added concurrency to cancel in-progress runs on new pushes
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  frontend:
+    runs-on: ubuntu-latest
+    
+    timeout-minutes: 10
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Validate project structure
+        run: |
+          echo "Running strict validation..."
+          node scripts/validate.cjs
+          echo "Validation passed - all required files exist"
+          
+      - name: Install frontend dependencies
+        run: npm ci
+          
+      - name: Type check frontend
+        run: npx tsc --noEmit
+          
+      - name: Build frontend
+        run: npm run build
+          
+      - name: Run frontend tests
+        run: npm run test
+
+  backend:
+    runs-on: ubuntu-latest
+    
+    timeout-minutes: 10
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check backend contents
+        id: backend-check
+        run: |
+          if [ -d "backend" ] && [ "$(find backend -type f ! -name "requirements.txt" -not -path "*/__pycache__/*" | wc -l)" -gt 0 ]; then
+            echo "empty=false" >> $GITHUB_OUTPUT
+          else
+            echo "empty=true" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Backend not implemented yet
+        if: steps.backend-check.outputs.empty == 'true'
+        run: echo "Backend folder exists but no implementation yet — skipping backend CI."
+
+      - name: Set up Python
+        if: steps.backend-check.outputs.empty == 'false'
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: 'pip'
+          cache-dependency-path: backend/requirements.txt
+
+      - name: Install backend dependencies
+        if: steps.backend-check.outputs.empty == 'false'
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+        working-directory: backend
+
+      # Optional future steps once Django exists:
+      # - name: Run migrations
+      #   run: python manage.py migrate
+      #   working-directory: backend
+
+      # - name: Run tests
+      #   run: pytest
+      #   working-directory: backend

@@ -1,0 +1,44 @@
+# Core Framework
+Django>=4.3
+djangorestframework
+djangorestframework-simplejwt
+
+# Security
+django-axes
+django-two-factor-auth
+django-otp
+argon2-cffi
+
+# Payments (PayFast)
+django-payfast
+requests
+
+# API & Filtering
+django-filter
+drf-spectacular
+
+# Database
+psycopg2-binary
+
+# Transaction State Management
+django-model-utils
+
+# Audit & History (Dispute Protection)
+django-simple-history
+
+# AWS S3 Storage
+boto3
+django-storages
+Pillow
+
+# PDF Invoices / Receipts
+WeasyPrint
+
+# Production Server
+gunicorn
+whitenoise
+
+# Testing
+pytest-django
+pytest-cov
+factory-boy
