@@ -1,0 +1,288 @@
+.transaction-card {
+  background-color: #1e2d3d;
+  border-radius: 8px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  border: 1px solid #2a3d52;
+  transition: all 0.3s ease;
+}
+
+.transaction-card:hover {
+  transform: translateY(-4px);
+  border-color: #4aa4b8;
+  box-shadow: 0 8px 24px rgba(74, 164, 184, 0.15);
+}
+
+.card-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.card-icon {
+  font-size: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  background-color: #2a3d52;
+  border-radius: 6px;
+}
+
+.order-id {
+  font-size: 12px;
+  color: #8fa3b5;
+  font-weight: 500;
+  letter-spacing: 0.5px;
+}
+
+.card-title {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 600;
+  color: #ffffff;
+}
+
+.card-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.card-meta p {
+  margin: 0;
+  font-size: 13px;
+  color: #8fa3b5;
+  line-height: 1.4;
+}
+
+.card-meta strong {
+  color: #b8c5d6;
+  font-weight: 600;
+}
+
+.card-status {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  font-weight: 500;
+  padding: 6px 12px;
+  border-radius: 4px;
+  width: fit-content;
+}
+
+.status-indicator {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  display: inline-block;
+}
+
+.status-secured {
+  background-color: #ffd700;
+  color: #000000;
+}
+
+.status-secured .status-indicator {
+  background-color: #ffd700;
+}
+
+.status-in-progress {
+  background-color: #ff6b6b;
+  color: #ffffff;
+}
+
+.status-in-progress .status-indicator {
+  background-color: #ff6b6b;
+}
+
+.status-delivered {
+  background-color: #4aa4b8;
+  color: #ffffff;
+}
+
+.status-delivered .status-indicator {
+  background-color: #4aa4b8;
+}
+
+.card-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.btn {
+  flex: 1;
+  padding: 10px 16px;
+  border: none;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  white-space: nowrap;
+}
+
+.btn-secondary {
+  background-color: transparent;
+  border: 1px solid #2a3d52;
+  color: #8fa3b5;
+}
+
+.btn-secondary:hover {
+  background-color: #2a3d52;
+  color: #ffffff;
+  border-color: #4aa4b8;
+}
+
+.btn-primary {
+  background-color: #ffd700;
+  color: #000000;
+}
+
+.btn-primary:hover {
+  background-color: #ffed4e;
+  transform: translateY(-2px);
+}
+
+@media (max-width: 768px) {
+  .transaction-card {
+    padding: 16px;
+  }
+
+  .btn {
+    padding: 8px 12px;
+    font-size: 12px;
+  }
+}
+
+/* Modal Styles */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 20px;
+}
+
+.modal-card {
+  background-color: #1e2d3d;
+  border-radius: 12px;
+  border: 1px solid #2a3d52;
+  max-width: 500px;
+  width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 24px;
+  border-bottom: 1px solid #2a3d52;
+}
+
+.modal-header h2 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: #ffffff;
+}
+
+.modal-close {
+  background: none;
+  border: none;
+  font-size: 28px;
+  color: #8fa3b5;
+  cursor: pointer;
+  padding: 0;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+}
+
+.modal-close:hover {
+  color: #ffffff;
+  transform: rotate(90deg);
+}
+
+.modal-body {
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.detail-section h3 {
+  margin: 0 0 12px 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: #4aa4b8;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.detail-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 0;
+  border-bottom: 1px solid #2a3d52;
+}
+
+.detail-row:last-child {
+  border-bottom: none;
+}
+
+.detail-label {
+  font-size: 13px;
+  color: #8fa3b5;
+  font-weight: 500;
+}
+
+.detail-value {
+  font-size: 13px;
+  color: #ffffff;
+  font-weight: 600;
+}
+
+.modal-footer {
+  display: flex;
+  gap: 12px;
+  padding: 20px 24px;
+  border-top: 1px solid #2a3d52;
+}
+
+.modal-footer .btn {
+  flex: 1;
+}
+
+@media (max-width: 768px) {
+  .modal-overlay {
+    padding: 10px;
+  }
+
+  .modal-card {
+    max-width: 100%;
+  }
+
+  .modal-header,
+  .modal-body,
+  .modal-footer {
+    padding: 16px;
+  }
+}
