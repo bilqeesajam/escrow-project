@@ -3,15 +3,17 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import Index from "./pages/Index";
-import Login from "./pages/Login";
-import Register from "./pages/Register";
+import { ProtectedRoute } from "@/components/ProtectedRoute";
+import Landing from "./pages/Landing";
+import About from "./pages/About";
+import Auth from "./pages/Auth";
 import Dashboard from "./pages/Dashboard";
-import CreateTransaction from "./pages/CreateTransaction";
+import NewTransaction from "./pages/NewTransaction";
 import TransactionDetail from "./pages/TransactionDetail";
-import AdminPanel from "./pages/AdminPanel";
-import Terms from "./pages/Terms";
-import Privacy from "./pages/Privacy";
+import DisputeDetail from "./pages/DisputeDetail";
+import AdminDashboard from "./pages/AdminDashboard";
+import AdminDisputes from "./pages/AdminDisputes";
+import AdminUsers from "./pages/AdminUsers";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -23,15 +25,16 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <Routes>
-          <Route path="/" element={<Index />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/register" element={<Register />} />
-          <Route path="/dashboard" element={<Dashboard />} />
-          <Route path="/transactions/new" element={<CreateTransaction />} />
-          <Route path="/transactions/:id" element={<TransactionDetail />} />
-          <Route path="/admin" element={<AdminPanel />} />
-          <Route path="/terms" element={<Terms />} />
-          <Route path="/privacy" element={<Privacy />} />
+          <Route path="/" element={<Landing />} />
+          <Route path="/about" element={<About />} />
+          <Route path="/auth" element={<Auth />} />
+          <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+          <Route path="/transactions/new" element={<ProtectedRoute><NewTransaction /></ProtectedRoute>} />
+          <Route path="/transactions/:id" element={<ProtectedRoute><TransactionDetail /></ProtectedRoute>} />
+          <Route path="/disputes/:id" element={<ProtectedRoute><DisputeDetail /></ProtectedRoute>} />
+          <Route path="/admin" element={<ProtectedRoute requiredRole="admin"><AdminDashboard /></ProtectedRoute>} />
+          <Route path="/admin/disputes" element={<ProtectedRoute requiredRole="admin"><AdminDisputes /></ProtectedRoute>} />
+          <Route path="/admin/users" element={<ProtectedRoute requiredRole="admin"><AdminUsers /></ProtectedRoute>} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>

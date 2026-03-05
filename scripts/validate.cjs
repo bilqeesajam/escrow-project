@@ -6,12 +6,19 @@ const path = require('path');
 console.log('🚨 TEMPLATE FILE VALIDATION - GITHUB ACTIONS');
 console.log('=============================================\n');
 
-// ALL FILES FROM THE ORIGINAL TEMPLATE - MUST EXIST
+// All files from the original template must exists
 const ALL_REQUIRED_FILES = [
-  // Backend
-  'backend/requirements.txt',
-  
   // Public assets
+  'public/elogo1.png',
+  'public/elogo2.png',
+  'public/elogo3.png',
+  'public/elogo4.png',
+  'public/elogo5.png',
+  'public/elogo6.png',
+  'public/elogo7.png',
+  'public/elogo8.png',
+  'public/elogo9.png',
+  'public/elogo10.png',
   'public/favicon.ico',
   'public/placeholder.svg',
   'public/robots.txt',
@@ -68,12 +75,14 @@ const ALL_REQUIRED_FILES = [
   'src/components/ui/use-toast.ts',
   
   // Core components
-  'src/components/Footer.tsx',
-  'src/components/Navbar.tsx',
+  'src/components/CheckoutModal.tsx',
+  'src/components/DisputeDialog.tsx',
+  'src/components/Layout.tsx',
   'src/components/NavLink.tsx',
+  'src/components/NotificationBell.tsx',
+  'src/components/ProtectedRoute.tsx',
   'src/components/StatusBadge.tsx',
-  'src/components/StepProgress.tsx',
-  'src/components/TransactionCard.tsx',
+  'src/components/Timeline.tsx',
   
   // Data
   'src/data/mockData.ts',
@@ -81,20 +90,24 @@ const ALL_REQUIRED_FILES = [
   // Hooks
   'src/hooks/use-mobile.tsx',
   'src/hooks/use-toast.ts',
+  'src/hooks/useAuth.ts',
+  'src/hooks/useNotifications.ts',
   
   // Lib
   'src/lib/utils.ts',
+  'src/lib/supabaseClient.ts',
   
   // Pages
-  'src/pages/AdminPanel.tsx',
-  'src/pages/CreateTransaction.tsx',
+  'src/pages/About.tsx',
+  'src/pages/AdminDashboard.tsx',
+  'src/pages/AdminDisputes.tsx',
+  'src/pages/AdminUsers.tsx',
+  'src/pages/Auth.tsx',
   'src/pages/Dashboard.tsx',
-  'src/pages/Index.tsx',
-  'src/pages/Login.tsx',
+  'src/pages/DisputeDetail.tsx',
+  'src/pages/Landing.tsx',
+  'src/pages/NewTransaction.tsx',
   'src/pages/NotFound.tsx',
-  'src/pages/Privacy.tsx',
-  'src/pages/Register.tsx',
-  'src/pages/Terms.tsx',
   'src/pages/TransactionDetail.tsx',
   
   // Test files
@@ -107,6 +120,9 @@ const ALL_REQUIRED_FILES = [
   'src/index.css',
   'src/main.tsx',
   'src/vite-env.d.ts',
+
+  // Type files
+  'src/types/escrow.ts',
   
   // Git
   '.gitignore',
@@ -132,7 +148,7 @@ const ALL_REQUIRED_FILES = [
 
 console.log(`🔍 Checking ${ALL_REQUIRED_FILES.length} template files...\n`);
 
-// Check EVERY file exists
+// Check every file exists
 let missingFiles = [];
 let existingFiles = 0;
 
@@ -162,7 +178,7 @@ console.log(`   Total files to check: ${ALL_REQUIRED_FILES.length}`);
 console.log(`   Files found: ${existingFiles}`);
 console.log(`   Files missing: ${missingFiles.length}`);
 
-// ====== THIS IS THE KEY PART: FAIL GITHUB ACTIONS IF FILES MISSING ======
+// Fail github actions if files are missing
 if (missingFiles.length > 0) {
   console.log('\n❌❌❌ VALIDATION FAILED!');
   console.log(`🚨 ${missingFiles.length} template files are missing!`);
@@ -202,12 +218,12 @@ if (missingFiles.length > 0) {
   
   console.log('\n All files from the original template must exist!');
   
-  // FORCE EXIT WITH ERROR CODE 1 - This WILL FAIL GitHub Actions
+  // Force exit with error code 1; fail github actions
   console.log('\n Exiting with error code 1...');
   process.exit(1);
 }
 
-// ====== ALL FILES EXIST ======
+// All files exist
 console.log('\n VALIDATION PASSED!');
 console.log(' All template files are present!');
 
