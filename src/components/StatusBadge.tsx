@@ -1,24 +1,10 @@
-import { Badge } from "@/components/ui/badge";
+import { Badge } from '@/components/ui/badge';
+import { STATUS_LABELS, STATUS_COLORS, type TransactionStatus } from '@/types/escrow';
 
-type TransactionStatus = "draft" | "funded" | "delivered" | "completed" | "disputed" | "cancelled";
-
-const statusConfig: Record<TransactionStatus, { label: string; variant: "default" | "secondary" | "destructive" | "outline" | "success" | "warning" | "info" | "escrow" | "funded" }> = {
-  draft: { label: "Draft", variant: "secondary" },
-  funded: { label: "In Escrow", variant: "funded" },
-  delivered: { label: "Delivered", variant: "info" },
-  completed: { label: "Completed", variant: "success" },
-  disputed: { label: "Disputed", variant: "warning" },
-  cancelled: { label: "Cancelled", variant: "destructive" },
-};
-
-interface StatusBadgeProps {
-  status: TransactionStatus;
+export function StatusBadge({ status }: { status: TransactionStatus }) {
+  return (
+    <Badge className={`${STATUS_COLORS[status]} border-0 font-medium`}>
+      {STATUS_LABELS[status]}
+    </Badge>
+  );
 }
-
-const StatusBadge = ({ status }: StatusBadgeProps) => {
-  const config = statusConfig[status];
-  return <Badge variant={config.variant}>{config.label}</Badge>;
-};
-
-export default StatusBadge;
-export type { TransactionStatus };
