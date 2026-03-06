@@ -14,6 +14,18 @@ import {
   Banknote,
   Eye,
 } from "lucide-react";
+import {
+  FaLock,
+  FaBalanceScale,
+  FaCheckCircle,
+  FaMapMarkerAlt,
+  FaCreditCard,
+  FaHandshake,
+  FaTruck,
+  FaSearch,
+  FaMoneyBillWave,
+} from "react-icons/fa";
+import Hero from "@/components/Hero";
 
 const stats = [
   { value: "256-bit", label: "Encryption standard" },
@@ -25,193 +37,162 @@ export default function Landing() {
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
-      <header className="border-b border-border/60 backdrop-blur supports-[backdrop-filter]:bg-background/70 sticky top-0 z-50">
+      <header className="bg-[#0f1a2b] sticky top-0 z-50">
         <div className="container mx-auto flex items-center justify-between h-16 px-4">
           <Link to="/" className="flex items-center gap-2.5">
-            <div className="inline-flex h-9 w-9 items-center justify-center rounded-xl bg-primary/10 border border-border">
-              <Shield className="h-5 w-5 text-primary" />
+            <div className="inline-flex h-9 w-9 items-center justify-center rounded-xl bg-transparent border border-white">
+              <Shield className="h-5 w-5 text-white" />
             </div>
-            <span className="text-lg font-bold text-primary tracking-tight" style={{ fontFamily: "'DM Sans', sans-serif" }}>
+            <span className="text-lg font-bold text-white tracking-tight" style={{ fontFamily: "'DM Sans', sans-serif" }}>
               EscrowShield
             </span>
           </Link>
 
-          <nav className="hidden md:flex items-center gap-6 text-sm font-medium text-muted-foreground">
-            <a href="#how-it-works" className="hover:text-foreground transition-colors">How it works</a>
-            <a href="#features" className="hover:text-foreground transition-colors">Features</a>
-            <Link to="/about" className="hover:text-foreground transition-colors">About</Link>
+          <nav className="hidden md:flex items-center gap-6 text-sm font-medium text-white">
+            <a href="#how-it-works" className="relative hover:text-white transition-colors before:absolute before:bottom-0 before:left-0 before:h-[2px] before:w-0 before:bg-white before:transition-[width] before:duration-300 hover:before:w-full">
+              How it works
+            </a>
+            <a href="#features" className="relative hover:text-white transition-colors before:absolute before:bottom-0 before:left-0 before:h-[2px] before:w-0 before:bg-white before:transition-[width] before:duration-300 hover:before:w-full">
+              Features
+            </a>
+            <Link to="/about" className="relative hover:text-white transition-colors before:absolute before:bottom-0 before:left-0 before:h-[2px] before:w-0 before:bg-white before:transition-[width] before:duration-300 hover:before:w-full">
+              About
+            </Link>
           </nav>
 
           <div className="flex items-center gap-2">
-            <Button asChild variant="ghost" size="sm">
-              <Link to="/auth">Sign In</Link>
+            <Button asChild variant="ghost" size="sm" className="text-white">
+              <Link to="/auth">Log In</Link>
             </Button>
-            <Button asChild size="sm">
-              <Link to="/auth">Get Started</Link>
+            <Button asChild size="sm" className="bg-[#f5b800] text-black hover:bg-[#d4a000]">
+              <Link to="/auth">Sign Up</Link>
             </Button>
           </div>
         </div>
       </header>
 
       {/* Hero */}
-      <section className="container mx-auto px-4 pt-20 pb-16">
-        <div className="relative overflow-hidden rounded-3xl border border-border bg-card">
-          <div className="pointer-events-none absolute inset-0">
-            <div className="absolute -top-32 -left-32 h-96 w-96 rounded-full bg-primary/10 blur-[100px]" />
-            <div className="absolute -bottom-32 -right-32 h-96 w-96 rounded-full bg-accent/10 blur-[100px]" />
-          </div>
-
-          <div className="relative px-6 py-20 md:px-16 md:py-24">
-            <div className="mx-auto max-w-3xl text-center">
-              <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-primary/10 text-primary text-sm font-medium mb-8 border border-primary/20">
-                <Shield className="h-4 w-4" />
-                Trusted escrow for modern business
-              </div>
-
-              <h1 className="text-4xl md:text-6xl font-bold tracking-tight mb-6 leading-[1.1]">
-                Transactions built on
-                <span className="text-primary"> trust and clarity</span>
-              </h1>
-
-              <p className="text-lg md:text-xl text-muted-foreground mb-10 max-w-2xl mx-auto leading-relaxed" style={{ fontFamily: "'DM Sans', sans-serif" }}>
-                EscrowShield holds funds securely until both buyer and seller confirm the deal is done. 
-                Clear terms, full visibility, built-in dispute resolution.
-              </p>
-
-              <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-                <Button asChild size="lg" className="w-full sm:w-auto text-base px-8 h-12">
-                  <Link to="/auth">
-                    Start a Transaction <ArrowRight className="h-4 w-4 ml-2" />
-                  </Link>
-                </Button>
-
-                <Button asChild size="lg" variant="outline" className="w-full sm:w-auto text-base px-8 h-12">
-                  <Link to="/about">
-                    Learn more <ChevronRight className="h-4 w-4 ml-1" />
-                  </Link>
-                </Button>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Stats bar */}
-      <section className="container mx-auto px-4 pb-16">
-        <div className="grid grid-cols-3 gap-4 max-w-3xl mx-auto">
-          {stats.map((s) => (
-            <div key={s.label} className="text-center p-6 rounded-2xl bg-card border border-border">
-              <p className="text-2xl md:text-3xl font-bold text-primary" style={{ fontFamily: "'DM Sans', sans-serif" }}>{s.value}</p>
-              <p className="text-sm text-muted-foreground mt-1">{s.label}</p>
-            </div>
-          ))}
-        </div>
-      </section>
+      <Hero />
 
       {/* Features */}
-      <section id="features" className="container mx-auto px-4 pb-20">
-        <div className="text-center mb-12">
-          <h2 className="text-3xl md:text-4xl font-bold tracking-tight">Why choose EscrowShield?</h2>
-          <p className="text-muted-foreground mt-3 max-w-xl mx-auto">
-            Every feature is designed to protect both parties and keep deals moving forward.
-          </p>
-        </div>
-        <div className="grid md:grid-cols-3 gap-6 max-w-5xl mx-auto">
+      <section id="features" className="w-full bg-[#0f1a2b] text-white py-20">
+        <div className="container mx-auto px-4">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl md:text-4xl font-bold tracking-tight text-[#f5b800]">Why choose EscrowShield?</h2>
+            <p className="mt-3 max-w-2xl mx-auto text-[#c0c0c0]">
+              Every feature is designed to protect both parties and keep deals moving forward.
+            </p>
+          </div>
+          <div className="grid lg:grid-cols-5 md:grid-cols-3 gap-6 max-w-5xl mx-auto">
           {[
-            {
-              icon: Lock,
-              title: "Funds held securely",
-              desc: "Payments sit safely in escrow until delivery is confirmed. No one gets burned.",
-            },
-            {
-              icon: Users,
-              title: "Buyer and seller protection",
-              desc: "Both parties agree to the same terms with full visibility and a clean paper trail.",
-            },
-            {
-              icon: Eye,
-              title: "Complete transparency",
-              desc: "Every action is logged on a timeline. Both sides always know what happened and what comes next.",
-            },
-            {
-              icon: Gavel,
-              title: "Fair dispute resolution",
-              desc: "If something goes wrong, open a dispute with evidence. An admin resolves it fairly.",
-            },
-            {
-              icon: Banknote,
-              title: "Simple payment flow",
-              desc: "Fund with confidence. Money only moves when the deal is confirmed by both parties.",
-            },
-            {
-              icon: CheckCircle,
-              title: "Guided workflow",
-              desc: "Create, fund, deliver, confirm, release. Clear steps with no confusion or back-and-forth.",
-            },
-          ].map(({ icon: Icon, title, desc }) => (
+  {
+    title: "Guaranteed Payment Security",
+    description: "Funds securely held until conditions are met.",
+    hoverText:
+      "Funds are held safely by an independent escrow until both parties fulfil the agreement.",
+    icon: <FaLock />,
+  },
+  {
+    title: "Fair Dispute Resolution",
+    description: "Neutral third-parties for fair outcomes.",
+    hoverText:
+      "Our impartial mediators help you reach a fair resolution without bias.",
+    icon: <FaBalanceScale />,
+  },
+  {
+    title: "Verified and Secure Profiles",
+    description: "Thoroughly vetted users, for peace of mind.",
+    hoverText: "Every user is checked and approved to prevent fraud.",
+    icon: <FaCheckCircle />,
+  },
+  {
+    title: "Transparent Tracking",
+    description: "Real-time updates for complete visibility.",
+    hoverText: "Track progress at every stage of the transaction.",
+    icon: <FaMapMarkerAlt />,
+  },
+  {
+    title: "Seamless PayFast Integration",
+    description: "Smooth and reliable payment processing.",
+    hoverText: "Payments processed instantly through PayFast.",
+    icon: <FaCreditCard />,
+  }
+          ].map(({ icon, title, description }) => (
             <div
               key={title}
-              className="bg-card border border-border rounded-2xl p-8 hover:border-primary/30 transition-colors"
+              className="bg-[#1a2235] border border-[#232c40] rounded-2xl p-8 hover:border-[#706cff] transition-colors"
             >
-              <div className="inline-flex items-center justify-center h-12 w-12 rounded-xl bg-primary/10 mb-4 border border-primary/20">
-                <Icon className="h-6 w-6 text-primary" />
+              <div className="inline-flex items-center justify-center h-12 w-12 rounded-xl bg-[#232c40] mb-4 border border-[#706cff]">
+                <span className="text-[#706cff]">{icon}</span>
               </div>
-              <h3 className="text-lg font-semibold mb-2">{title}</h3>
-              <p className="text-sm text-muted-foreground leading-relaxed">{desc}</p>
+              <h3 className="text-lg bold mb-2 text-white">{title}</h3>
+              <p className="text-sm text-[#c0c0c0] leading-relaxed">{description}</p>
             </div>
           ))}
+          </div>
         </div>
       </section>
 
       {/* How it works */}
-      <section id="how-it-works" className="bg-card border-y border-border">
-        <div className="container mx-auto px-4 py-20">
+      <section id="how-it-works" className="w-full bg-[#1a2836] text-white py-20">
+        <div className="container mx-auto px-4">
           <div className="max-w-5xl mx-auto">
             <div className="text-center mb-14">
-              <h2 className="text-3xl md:text-4xl font-bold tracking-tight">
+              <h2 className="text-3xl md:text-4xl font-bold tracking-tight text-[#f5b800]">
                 How it works
               </h2>
-              <p className="text-muted-foreground mt-3 max-w-lg mx-auto">
+              <p className="mt-3 max-w-lg mx-auto text-[#c0c0c0]">
                 Four simple steps from agreement to payment. Both sides stay informed at every stage.
               </p>
             </div>
 
             <div className="grid lg:grid-cols-4 gap-6">
               {[
-                {
-                  icon: FileText,
-                  step: "01",
-                  title: "Set the terms",
-                  desc: "Buyer creates a transaction with price, delivery details, and expectations.",
-                },
-                {
-                  icon: Users,
-                  step: "02",
-                  title: "Seller accepts",
-                  desc: "Seller reviews the terms and confirms before any funding happens.",
-                },
-                {
-                  icon: Clock3,
-                  step: "03",
-                  title: "Track delivery",
-                  desc: "Mark as delivered, share proof, and keep everything visible on the timeline.",
-                },
-                {
-                  icon: BadgeCheck,
-                  step: "04",
-                  title: "Release funds",
-                  desc: "Buyer confirms receipt and funds are released to the seller.",
-                },
-              ].map(({ icon: Icon, step, title, desc }) => (
-                <div key={title} className="relative rounded-2xl border border-border bg-background p-8">
+                  {
+    title: "1. Agree to Terms",
+    description:
+      "Buyer and Seller agree to the terms. Buyer funds the escrow account, and both parties commit.",
+    icon: <FaHandshake />,
+    link: "/terms",
+  },
+  {
+    title: "2. Buyer Pays",
+    description:
+      "The Buyer deposits payment via PayFast, where it’s held securely by the escrow service.",
+    icon: <FaCreditCard />,
+    link: "/payment-info",
+  },
+  {
+    title: "3. Seller Delivers",
+    description:
+      "When payment is confirmed, Seller delivers goods or services as per the deal.",
+    icon: <FaTruck />,
+    link: "/delivery-info",
+  },
+  {
+    title: "4. Buyer Inspects",
+    description:
+      "Buyer inspects the product to ensure it meets the agreed terms.",
+    icon: <FaSearch />,
+    link: "/inspection",
+  },
+  {
+    title: "5. Funds Released",
+    description:
+      "Once approved, funds are released from escrow to the Seller’s account.",
+    icon: <FaMoneyBillWave />,
+    link: "/release-info",
+  },
+              ].map(({ icon, title, description, link }, idx) => (
+                <div key={title} className="bg-[#1a2235] border border-[#232c40] rounded-2xl p-8 hover:border-[#706cff] transition-colors relative">
                   <span className="text-5xl font-bold text-primary/10 absolute top-4 right-6" style={{ fontFamily: "'DM Sans', sans-serif" }}>
-                    {step}
+                    {idx + 1}
                   </span>
-                  <div className="inline-flex items-center justify-center h-12 w-12 rounded-xl bg-primary/10 mb-4 border border-primary/20">
-                    <Icon className="h-6 w-6 text-primary" />
+                  <div className="inline-flex items-center justify-center h-12 w-12 rounded-xl bg-[#232c40] mb-4 border border-[#706cff]">
+                    <span className="text-[#706cff]">{icon}</span>
                   </div>
-                  <h3 className="text-lg font-semibold mb-2">{title}</h3>
-                  <p className="text-sm text-muted-foreground leading-relaxed">{desc}</p>
+                  <h3 className="text-lg font-semibold mb-2 text-white">{title}</h3>
+                  <p className="text-sm text-[#c0c0c0] leading-relaxed">{description}</p>
                 </div>
               ))}
             </div>
@@ -220,37 +201,39 @@ export default function Landing() {
       </section>
 
       {/* CTA */}
-      <section className="container mx-auto px-4 py-20">
-        <div className="max-w-3xl mx-auto text-center">
-          <h2 className="text-3xl md:text-4xl font-bold tracking-tight mb-4">
-            Ready to make your next deal safer?
-          </h2>
-          <p className="text-lg text-muted-foreground mb-8 max-w-xl mx-auto">
-            Create your first escrow transaction in minutes. No complexity, no fine print.
-          </p>
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-            <Button asChild size="lg" className="text-base px-8 h-12">
-              <Link to="/auth">
-                Get Started Free <ArrowRight className="h-4 w-4 ml-2" />
-              </Link>
-            </Button>
-            <Button asChild size="lg" variant="outline" className="text-base px-8 h-12">
-              <Link to="/about">
-                Read the full guide
-              </Link>
-            </Button>
+      <section className="w-full bg-[#0f1a2b] text-white py-20">
+        <div className="container mx-auto px-4">
+          <div className="max-w-3xl mx-auto text-center">
+            <h2 className="text-3xl md:text-4xl font-bold tracking-tight mb-4 text-[#f5b800]">
+              Ready to make your next deal safer?
+            </h2>
+            <p className="text-lg mb-8 max-w-xl mx-auto text-[#c0c0c0]">
+              Create your first escrow transaction in minutes. No complexity, no fine print.
+            </p>
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+              <Button asChild size="lg" className="text-base px-8 h-12 bg-[#f5b800] hover:bg-[#f5b800]/90 text-black">
+                <Link to="/auth">
+                  Get Started Free <ArrowRight className="h-4 w-4 ml-2" />
+                </Link>
+              </Button>
+              <Button asChild size="lg" variant="outline" className="text-base px-8 h-12 bg-white text-black">
+                <Link to="/about">
+                  Read the full guide
+                </Link>
+              </Button>
+            </div>
           </div>
         </div>
       </section>
 
       {/* Footer */}
-      <footer className="border-t border-border/60">
+      <footer className="border-t border-border/60 bg-[#0f1a2b]">
         <div className="container mx-auto px-4 py-10 flex flex-col sm:flex-row items-center justify-between gap-4 text-sm text-muted-foreground">
           <span>© {new Date().getFullYear()} EscrowShield. All rights reserved.</span>
           <div className="flex items-center gap-6">
-            <a href="#how-it-works" className="hover:text-foreground transition-colors">How it works</a>
-            <Link to="/about" className="hover:text-foreground transition-colors">About</Link>
-            <Link to="/auth" className="hover:text-foreground transition-colors">Get started</Link>
+            <a href="#how-it-works" className="hover:text-white transition-colors">How it works</a>
+            <Link to="/about" className="hover:text-white transition-colors">About</Link>
+            <Link to="/auth" className="hover:text-white transition-colors">Get started</Link>
           </div>
         </div>
       </footer>
