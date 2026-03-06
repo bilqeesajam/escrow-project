@@ -7,6 +7,7 @@ import { ProtectedRoute } from "@/components/ProtectedRoute";
 import Landing from "./pages/Landing";
 import About from "./pages/About";
 import Auth from "./pages/Auth";
+import AuthCallback from "./pages/AuthCallback";
 import Dashboard from "./pages/Dashboard";
 import NewTransaction from "./pages/NewTransaction";
 import TransactionDetail from "./pages/TransactionDetail";
@@ -28,6 +29,7 @@ const App = () => (
           <Route path="/" element={<Landing />} />
           <Route path="/about" element={<About />} />
           <Route path="/auth" element={<Auth />} />
+          <Route path="/auth/callback" element={<AuthCallback />} />
           <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
           <Route path="/transactions/new" element={<ProtectedRoute><NewTransaction /></ProtectedRoute>} />
           <Route path="/transactions/:id" element={<ProtectedRoute><TransactionDetail /></ProtectedRoute>} />
