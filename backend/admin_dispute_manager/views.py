@@ -1,87 +1,42 @@
 import json
 
 from django.http import JsonResponse
-from django.db import IntegrityError
 from django.utils import timezone
 from django.utils.dateparse import parse_date
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
+from django.conf import settings
+from supabase import create_client
 
-from .models import Disputes, Users
+supabase = create_client(settings.SUPABASE_URL, settings.SUPABASE_KEY)
 
 ALLOWED_DISPUTE_STATUSES = {
     'open',
+    'resolved',
     'under_review',
-    'escalated',
-    'resolved_buyer',
-    'resolved_seller',
-    'closed',
 }
 
 STATUS_ALIASES = {
-    'release_to_seller': 'resolved_seller',
-    'refund_buyer': 'resolved_buyer',
+    'release_to_seller': 'resolved',
+    'refund_buyer': 'resolved',
     'split': 'under_review',
 }
 
-
-@require_http_methods(["GET"])
-def get_users(request):
-    users = Users.objects.all().values(
-        'id',
-        'email',
-        'full_name',
-        'phone_number',
-        'role',
-        'national_id_number',
-        'id_document_type',
-        'date_of_birth',
-        'nationality',
-        'gender',
-        'is_email_verified',
-        'is_2fa_enabled',
-        'kyc_status',
-        'kyc_verified_at',
-        'face_scan_verified',
-        'last_login',
-        'created_at',
-        'updated_at',
-    )
-    return JsonResponse(list(users), safe=False)
+# Joins based on actual schema:
+# disputes.transaction_id -> transactions.id
+# disputes.opened_by_profile_id -> profiles.id
+# disputes.resolved_by_admin_profile_id -> profiles.id
+DISPUTE_JOIN = """
+    *,
+    transaction:transactions(*),
+    opened_by:profiles!disputes_opened_by_profile_id_fkey(*),
+    resolved_by_admin:profiles!disputes_resolved_by_admin_profile_id_fkey(*)
+"""
 
 
-@require_http_methods(["GET"])
-def get_user_by_id(request, user_id):
-    try:
-        user = Users.objects.filter(id=user_id).values(
-            'id',
-            'email',
-            'full_name',
-            'phone_number',
-            'role',
-            'national_id_number',
-            'id_document_type',
-            'date_of_birth',
-            'nationality',
-            'gender',
-            'is_email_verified',
-            'is_2fa_enabled',
-            'kyc_status',
-            'kyc_verified_at',
-            'face_scan_verified',
-            'last_login',
-            'created_at',
-            'updated_at',
-        ).first()
-
-        if not user:
-            return JsonResponse({'error': 'User not found'}, status=404)
-
-        return JsonResponse(user, safe=False)
-
-    except Exception as e:
-        return JsonResponse({'error': str(e)}, status=400)
-
+# ──────────────────────────────────────────
+# Helpers
+# ──────────────────────────────────────────
 
 def _parse_json_body(request):
     if not request.body:
@@ -90,56 +45,6 @@ def _parse_json_body(request):
         return json.loads(request.body)
     except json.JSONDecodeError:
         return {}
-
-
-def _parse_evidence_paths(raw_paths):
-    if not raw_paths:
-        return []
-    return [path.strip() for path in raw_paths.split(',') if path.strip()]
-
-
-def _build_timeline(dispute):
-    timeline = []
-    if dispute.created_at:
-        timeline.append({'event': 'created', 'at': dispute.created_at})
-    if dispute.assigned_at:
-        timeline.append(
-            {
-                'event': 'assigned',
-                'at': dispute.assigned_at,
-                'by': _serialize_user(dispute.assigned_mediator),
-            }
-        )
-    if dispute.resolved_at:
-        timeline.append(
-            {
-                'event': 'resolved',
-                'at': dispute.resolved_at,
-                'by': _serialize_user(dispute.resolved_by),
-            }
-        )
-    return timeline
-
-
-def _parse_decision_logs(resolution_notes):
-    logs = []
-    if not resolution_notes:
-        return logs
-
-    for line in resolution_notes.splitlines():
-        if line.startswith('LOG|'):
-            parts = line.split('|')
-            if len(parts) >= 4:
-                log = {
-                    'timestamp': parts[1],
-                    'admin_id': parts[2],
-                    'decision': parts[3],
-                }
-                if len(parts) > 4:
-                    log['meta'] = '|'.join(parts[4:])
-                logs.append(log)
-
-    return logs
 
 
 def _ensure_admin(request):
@@ -154,13 +59,13 @@ def _normalize_status(raw_status):
     return STATUS_ALIASES.get(normalized, normalized)
 
 
-def _serialize_user(user):
-    if not user:
+def _serialize_profile(profile):
+    if not profile:
         return None
     return {
-        'full_name': user.full_name,
-        'email': user.email,
-        'role': user.role,
+        'id': profile.get('id'),
+        'display_name': profile.get('display_name'),
+        'email': profile.get('email'),
     }
 
 
@@ -168,86 +73,103 @@ def _serialize_transaction(transaction):
     if not transaction:
         return None
     return {
-        'title': transaction.title,
-        'amount': transaction.amount,
-        'currency': transaction.currency,
-        'status': transaction.status,
-        'delivery_deadline': transaction.delivery_deadline,
+        'id': transaction.get('id'),
+        'buyer_id': transaction.get('buyer_id'),
+        'seller_id': transaction.get('seller_id'),
+        'status': transaction.get('status'),
     }
+
+
+def _build_timeline(dispute):
+    timeline = []
+    if dispute.get('created_at'):
+        timeline.append({'event': 'created', 'at': dispute['created_at']})
+    if dispute.get('resolved_at'):
+        timeline.append({
+            'event': 'resolved',
+            'at': dispute['resolved_at'],
+            'by': _serialize_profile(dispute.get('resolved_by_admin')),
+        })
+    return timeline
+
+
+def _parse_decision_logs(resolution):
+    logs = []
+    if not resolution:
+        return logs
+    for line in resolution.splitlines():
+        if line.startswith('LOG|'):
+            parts = line.split('|')
+            if len(parts) >= 4:
+                log = {
+                    'timestamp': parts[1],
+                    'admin_id': parts[2],
+                    'decision': parts[3],
+                }
+                if len(parts) > 4:
+                    log['meta'] = '|'.join(parts[4:])
+                logs.append(log)
+    return logs
 
 
 def _serialize_dispute(dispute, include_detail=False):
     payload = {
-        'id': dispute.id,
-        'reason': dispute.reason,
-        'status': dispute.status,
-        'priority': None,
-        'transaction': _serialize_transaction(dispute.transaction),
-        'raised_by': _serialize_user(dispute.raised_by),
-        'against': _serialize_user(dispute.against),
-        'assigned_mediator': _serialize_user(dispute.assigned_mediator),
-        'resolved_by': _serialize_user(dispute.resolved_by),
-        'assigned_at': dispute.assigned_at,
-        'resolved_at': dispute.resolved_at,
-        'created_at': dispute.created_at,
-        'updated_at': dispute.updated_at,
+        'id': dispute.get('id'),
+        'reason': dispute.get('reason'),
+        'description': dispute.get('description'),
+        'status': dispute.get('status'),
+        'resolution': dispute.get('resolution'),
+        'transaction': _serialize_transaction(dispute.get('transaction')),
+        'opened_by': _serialize_profile(dispute.get('opened_by')),
+        'resolved_by_admin': _serialize_profile(dispute.get('resolved_by_admin')),
+        'resolved_at': dispute.get('resolved_at'),
+        'created_at': dispute.get('created_at'),
+        'updated_at': dispute.get('updated_at'),
     }
     if include_detail:
-        payload.update(
-            {
-                'evidence': _parse_evidence_paths(dispute.evidence_paths),
-                'messages': [],
-                'timeline': _build_timeline(dispute),
-            }
-        )
+        payload['timeline'] = _build_timeline(dispute)
     return payload
 
 
+# ──────────────────────────────────────────
+# Dispute views
+# ──────────────────────────────────────────
+
 @require_http_methods(["GET"])
 def list_disputes(request):
-    queryset = Disputes.objects.select_related(
-        'transaction',
-        'raised_by',
-        'against',
-        'assigned_mediator',
-        'resolved_by',
-    ).order_by('-created_at')
-
     status = request.GET.get('status')
-    priority = request.GET.get('priority')
     start_date = request.GET.get('start_date')
     end_date = request.GET.get('end_date')
 
+    query = supabase.table("disputes").select(DISPUTE_JOIN).order("created_at", desc=True)
+
     if status:
-        queryset = queryset.filter(status__iexact=status)
+        query = query.ilike("status", status)
 
     if start_date:
         parsed_start = parse_date(start_date)
         if not parsed_start:
             return JsonResponse({'error': 'Invalid start_date. Use YYYY-MM-DD.'}, status=400)
-        queryset = queryset.filter(created_at__date__gte=parsed_start)
+        query = query.gte("created_at", parsed_start.isoformat())
 
     if end_date:
         parsed_end = parse_date(end_date)
         if not parsed_end:
             return JsonResponse({'error': 'Invalid end_date. Use YYYY-MM-DD.'}, status=400)
-        queryset = queryset.filter(created_at__date__lte=parsed_end)
+        query = query.lte("created_at", parsed_end.isoformat())
 
-    data = [_serialize_dispute(dispute) for dispute in queryset]
+    response = query.execute()
+    data = [_serialize_dispute(d) for d in response.data]
 
-    return JsonResponse(
-        {
-            'count': len(data),
-            'filters_applied': {
-                'status': status,
-                'priority': priority,
-                'start_date': start_date,
-                'end_date': end_date,
-            },
-            'results': data,
+    return JsonResponse({
+        'count': len(data),
+        'filters_applied': {
+            'status': status,
+            'start_date': start_date,
+            'end_date': end_date,
         },
-        safe=False,
-    )
+        'results': data,
+    }, safe=False)
 
 
 @require_http_methods(["GET"])
@@ -258,40 +180,32 @@ def list_disputes_by_status(request, status):
             status=400,
         )
 
-    queryset = Disputes.objects.select_related(
-        'transaction',
-        'raised_by',
-        'against',
-        'assigned_mediator',
-        'resolved_by',
-    ).filter(status__iexact=status).order_by('-created_at')
-    data = [_serialize_dispute(dispute) for dispute in queryset]
+    response = supabase.table("disputes") \
+        .select(DISPUTE_JOIN) \
+        .ilike("status", status) \
+        .order("created_at", desc=True) \
+        .execute()
 
-    return JsonResponse(
-        {
-            'count': len(data),
-            'status_filter': status,
-            'results': data,
-        },
-        safe=False,
-    )
+    data = [_serialize_dispute(d) for d in response.data]
+
+    return JsonResponse({
+        'count': len(data),
+        'status_filter': status,
+        'results': data,
+    }, safe=False)
 
 
 @require_http_methods(["GET"])
 def dispute_detail(request, dispute_id):
-    dispute = Disputes.objects.select_related(
-        'transaction',
-        'raised_by',
-        'against',
-        'assigned_mediator',
-        'resolved_by',
-    ).filter(id=dispute_id).first()
-    if not dispute:
+    response = supabase.table("disputes") \
+        .select(DISPUTE_JOIN) \
+        .eq("id", dispute_id) \
+        .execute()
+
+    if not response.data:
         return JsonResponse({'error': 'Dispute not found'}, status=404)
 
-    response = _serialize_dispute(dispute, include_detail=True)
-
-    return JsonResponse(response, safe=False)
+    return JsonResponse(_serialize_dispute(response.data[0], include_detail=True), safe=False)
 
 
 @csrf_exempt
@@ -300,55 +214,57 @@ def dispute_internal_notes(request, dispute_id):
     if not _ensure_admin(request):
         return JsonResponse({'error': 'Admins only'}, status=403)
 
-    dispute = Disputes.objects.filter(id=dispute_id).first()
-    if not dispute:
+    response = supabase.table("disputes").select("id").eq("id", dispute_id).execute()
+    if not response.data:
         return JsonResponse({'error': 'Dispute not found'}, status=404)
 
     body = _parse_json_body(request)
 
     if request.method == 'POST':
         note = body.get('note', '')
-        return JsonResponse(
-            {
-                'message': 'Placeholder only. Persist internal notes table later.',
-                'dispute_id': str(dispute_id),
-                'note': note,
-                'admin_id': getattr(request.user, 'id', None),
-                'timestamp': timezone.now(),
-                'visible_to_users': False,
-            },
-            status=201,
-        )
-
-    return JsonResponse(
-        {
+        return JsonResponse({
+            'message': 'Placeholder only. Persist internal notes table later.',
             'dispute_id': str(dispute_id),
+            'note': note,
+            'admin_id': getattr(request.user, 'id', None),
+            'timestamp': timezone.now(),
             'visible_to_users': False,
-            'notes': [],
-        }
-    )
+        }, status=201)
 
+    return JsonResponse({
+        'dispute_id': str(dispute_id),
+        'visible_to_users': False,
+        'notes': [],
+    })
+
+
+# ──────────────────────────────────────────
+# Decision helpers
+# ──────────────────────────────────────────
 
 def _apply_decision(dispute, decision, admin_id, note_text='', posted_status=None):
     timestamp = timezone.now().isoformat()
     log_line = f'LOG|{timestamp}|{admin_id}|{decision}|{note_text}'
 
-    existing = dispute.resolution_notes or ''
-    resolution_notes = f"{existing}\n{log_line}".strip()
-    now = timezone.now()
+    existing = dispute.get('resolution') or ''
+    resolution = f"{existing}\n{log_line}".strip()
+
+    now = timezone.now().isoformat()
     requested_status = posted_status or decision
     status_applied = _normalize_status(requested_status)
+
     if status_applied not in ALLOWED_DISPUTE_STATUSES:
         raise ValueError(
             f"Invalid status '{requested_status}'. Allowed values: {sorted(ALLOWED_DISPUTE_STATUSES)}"
         )
 
-    Disputes.objects.filter(id=dispute.id).update(
-        resolution_notes=resolution_notes,
-        resolved_at=now,
-        updated_at=now,
-        status=status_applied,
-    )
+    supabase.table("disputes").update({
+        'resolution': resolution,
+        'resolved_at': now,
+        'updated_at': now,
+        'status': status_applied,
+        'resolved_by_admin_profile_id': str(admin_id) if admin_id else None,
+    }).eq("id", dispute['id']).execute()
 
     return {
         'decision': decision,
@@ -359,30 +275,32 @@ def _apply_decision(dispute, decision, admin_id, note_text='', posted_status=Non
     }
 
 
+# ──────────────────────────────────────────
+# Decision views
+# ──────────────────────────────────────────
+
 @csrf_exempt
 @require_http_methods(["POST"])
 def dispute_decision_release_to_seller(request, dispute_id):
     if not _ensure_admin(request):
         return JsonResponse({'error': 'Admins only'}, status=403)
 
-    dispute = Disputes.objects.filter(id=dispute_id).first()
-    if not dispute:
+    response = supabase.table("disputes").select("id, resolution").eq("id", dispute_id).execute()
+    if not response.data:
         return JsonResponse({'error': 'Dispute not found'}, status=404)
 
     body = _parse_json_body(request)
     posted_status = body.get('status_applied') or body.get('decision') or body.get('status')
     try:
         decision_log = _apply_decision(
-            dispute,
-            'release_to_seller',
+            response.data[0], 'release_to_seller',
             getattr(request.user, 'id', None),
             body.get('note', ''),
             posted_status=posted_status,
         )
     except ValueError as e:
         return JsonResponse({'error': str(e)}, status=400)
-    except IntegrityError as e:
-        return JsonResponse({'error': 'Decision could not be applied due to DB constraint', 'details': str(e)}, status=400)
+
     return JsonResponse({'dispute_id': str(dispute_id), 'log': decision_log}, status=200)
 
 
@@ -392,24 +310,22 @@ def dispute_decision_refund_buyer(request, dispute_id):
     if not _ensure_admin(request):
         return JsonResponse({'error': 'Admins only'}, status=403)
 
-    dispute = Disputes.objects.filter(id=dispute_id).first()
-    if not dispute:
+    response = supabase.table("disputes").select("id, resolution").eq("id", dispute_id).execute()
+    if not response.data:
         return JsonResponse({'error': 'Dispute not found'}, status=404)
 
     body = _parse_json_body(request)
     posted_status = body.get('status_applied') or body.get('decision') or body.get('status')
     try:
         decision_log = _apply_decision(
-            dispute,
-            'refund_buyer',
+            response.data[0], 'refund_buyer',
             getattr(request.user, 'id', None),
             body.get('note', ''),
             posted_status=posted_status,
         )
     except ValueError as e:
         return JsonResponse({'error': str(e)}, status=400)
-    except IntegrityError as e:
-        return JsonResponse({'error': 'Decision could not be applied due to DB constraint', 'details': str(e)}, status=400)
+
     return JsonResponse({'dispute_id': str(dispute_id), 'log': decision_log}, status=200)
 
 
@@ -419,8 +335,8 @@ def dispute_decision_split(request, dispute_id):
     if not _ensure_admin(request):
         return JsonResponse({'error': 'Admins only'}, status=403)
 
-    dispute = Disputes.objects.filter(id=dispute_id).first()
-    if not dispute:
+    response = supabase.table("disputes").select("id, resolution").eq("id", dispute_id).execute()
+    if not response.data:
         return JsonResponse({'error': 'Dispute not found'}, status=404)
 
     body = _parse_json_body(request)
@@ -429,49 +345,60 @@ def dispute_decision_split(request, dispute_id):
     posted_status = body.get('status_applied') or body.get('decision') or body.get('status')
     try:
         decision_log = _apply_decision(
-            dispute,
-            'split',
+            response.data[0], 'split',
             getattr(request.user, 'id', None),
             f'split_ratio={split_ratio}; {note}'.strip(),
             posted_status=posted_status,
         )
     except ValueError as e:
         return JsonResponse({'error': str(e)}, status=400)
-    except IntegrityError as e:
-        return JsonResponse({'error': 'Decision could not be applied due to DB constraint', 'details': str(e)}, status=400)
-    decision_log['split_ratio'] = split_ratio
 
+    decision_log['split_ratio'] = split_ratio
     return JsonResponse({'dispute_id': str(dispute_id), 'log': decision_log}, status=200)
 
 
+# ──────────────────────────────────────────
+# SLA & logs
+# ──────────────────────────────────────────
+
 @require_http_methods(["GET"])
 def dispute_sla(request, dispute_id):
-    dispute = Disputes.objects.filter(id=dispute_id).first()
-    if not dispute:
+    response = supabase.table("disputes") \
+        .select("id, created_at, resolved_at") \
+        .eq("id", dispute_id) \
+        .execute()
+
+    if not response.data:
         return JsonResponse({'error': 'Dispute not found'}, status=404)
 
-    first_response_at = dispute.assigned_at or dispute.resolved_at
+    dispute = response.data[0]
+    first_response_at = dispute.get('resolved_at')
     response_time_seconds = None
 
-    if dispute.created_at and first_response_at:
-        response_time_seconds = int((first_response_at - dispute.created_at).total_seconds())
+    if dispute.get('created_at') and first_response_at:
+        from datetime import datetime
+        created = datetime.fromisoformat(dispute['created_at'])
+        first = datetime.fromisoformat(first_response_at)
+        response_time_seconds = int((first - created).total_seconds())
 
-    return JsonResponse(
-        {
-            'dispute_id': str(dispute_id),
-            'created_at': dispute.created_at,
-            'first_response_at': first_response_at,
-            'response_time_seconds': response_time_seconds,
-            'sla_status': 'placeholder',
-        }
-    )
+    return JsonResponse({
+        'dispute_id': str(dispute_id),
+        'created_at': dispute.get('created_at'),
+        'first_response_at': first_response_at,
+        'response_time_seconds': response_time_seconds,
+        'sla_status': 'placeholder',
+    })
 
 
 @require_http_methods(["GET"])
 def dispute_decision_logs(request, dispute_id):
-    dispute = Disputes.objects.filter(id=dispute_id).first()
-    if not dispute:
+    response = supabase.table("disputes") \
+        .select("id, resolution") \
+        .eq("id", dispute_id) \
+        .execute()
+
+    if not response.data:
         return JsonResponse({'error': 'Dispute not found'}, status=404)
 
-    logs = _parse_decision_logs(dispute.resolution_notes)
+    logs = _parse_decision_logs(response.data[0].get('resolution'))
     return JsonResponse({'dispute_id': str(dispute_id), 'logs': logs})
