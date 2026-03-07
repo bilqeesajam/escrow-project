@@ -20,3 +20,4 @@ db.sqlite3
 # Migrations cache
 *.log
 
+node_modules
