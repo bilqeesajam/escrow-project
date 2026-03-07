@@ -45,53 +45,58 @@
   }
 
   .dark {
-    --background: 220 25% 8%;
+    --background: 210 36% 12%;
     --foreground: 210 20% 95%;
 
-    --card: 220 25% 11%;
+    --card: 207 30% 16%;
     --card-foreground: 210 20% 95%;
 
-    --popover: 220 25% 11%;
+    --popover: 207 30% 16%;
     --popover-foreground: 210 20% 95%;
 
-    --primary: 220 60% 55%;
-    --primary-foreground: 0 0% 100%;
+    --primary: 48 96% 53%;
+    --primary-foreground: 210 36% 10%;
 
-    --secondary: 220 20% 16%;
-    --secondary-foreground: 210 20% 90%;
+    --secondary: 184 30% 35%;
+    --secondary-foreground: 210 20% 95%;
 
-    --muted: 220 20% 16%;
-    --muted-foreground: 215 15% 55%;
+    --muted: 210 25% 20%;
+    --muted-foreground: 210 15% 60%;
 
-    --accent: 160 50% 45%;
-    --accent-foreground: 0 0% 100%;
+    --accent: 48 96% 53%;
+    --accent-foreground: 210 36% 10%;
 
-    --destructive: 0 62% 40%;
-    --destructive-foreground: 210 40% 98%;
+    --destructive: 0 62% 50%;
+    --destructive-foreground: 0 0% 100%;
 
-    --border: 220 20% 18%;
-    --input: 220 20% 18%;
-    --ring: 220 60% 55%;
+    --border: 210 20% 22%;
+    --input: 210 20% 22%;
+    --ring: 48 96% 53%;
 
-    --sidebar-background: 220 25% 6%;
-    --sidebar-foreground: 210 20% 85%;
-    --sidebar-primary: 220 60% 55%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 220 20% 12%;
-    --sidebar-accent-foreground: 210 20% 85%;
-    --sidebar-border: 220 20% 14%;
-    --sidebar-ring: 220 60% 55%;
+    --sidebar-background: 210 36% 12%;
+    --sidebar-foreground: 210 20% 90%;
+    --sidebar-primary: 48 96% 53%;
+    --sidebar-primary-foreground: 210 36% 10%;
+    --sidebar-accent: 207 30% 16%;
+    --sidebar-accent-foreground: 210 20% 90%;
+    --sidebar-border: 210 20% 18%;
+    --sidebar-ring: 48 96% 53%;
   }
 }
 
 @layer base {
   * {
-    @apply border-border;
+    @apply border-border transition-colors duration-200;
+  }
+
+  html, body, #root {
+    @apply overflow-x-hidden w-full;
   }
 
   body {
     @apply bg-background text-foreground;
     font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    transition: background-color 0.3s ease, color 0.3s ease;
   }
 
   h1, h2, h3 {

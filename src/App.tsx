@@ -4,6 +4,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
+import { ThemeProvider } from "@/components/ThemeProvider";
 import Landing from "./pages/Landing";
 import About from "./pages/About";
 import Auth from "./pages/Auth";
@@ -15,11 +16,13 @@ import DisputeDetail from "./pages/DisputeDetail";
 import AdminDashboard from "./pages/AdminDashboard";
 import AdminDisputes from "./pages/AdminDisputes";
 import AdminUsers from "./pages/AdminUsers";
+import Profile from "./pages/Profile";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
 
 const App = () => (
+  <ThemeProvider attribute="class" defaultTheme="light" enableSystem={false}>
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
       <Toaster />
@@ -37,11 +40,13 @@ const App = () => (
           <Route path="/admin" element={<ProtectedRoute requiredRole="admin"><AdminDashboard /></ProtectedRoute>} />
           <Route path="/admin/disputes" element={<ProtectedRoute requiredRole="admin"><AdminDisputes /></ProtectedRoute>} />
           <Route path="/admin/users" element={<ProtectedRoute requiredRole="admin"><AdminUsers /></ProtectedRoute>} />
+          <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>
+  </ThemeProvider>
 );
 
 export default App;
