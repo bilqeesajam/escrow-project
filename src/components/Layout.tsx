@@ -1,12 +1,15 @@
 import { Link, useNavigate } from 'react-router-dom';
+import { useState } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { NotificationBell } from './NotificationBell';
 import { Button } from '@/components/ui/button';
-import { Shield, LogOut, LayoutDashboard, Plus } from 'lucide-react';
+import { Shield, LogOut, LayoutDashboard, Plus, Settings } from 'lucide-react';
+import { AdminSettingsModal } from '@/components/AdminSettingsModal';
 
 export function Layout({ children }: { children: React.ReactNode }) {
   const { user, profile, hasRole, signOut } = useAuth();
   const navigate = useNavigate();
+  const [showSettingsModal, setShowSettingsModal] = useState(false);
 
   const handleSignOut = async () => {
     await signOut();
@@ -41,9 +44,18 @@ export function Layout({ children }: { children: React.ReactNode }) {
                 </Button>
               )}
               <NotificationBell />
-              <span className="text-sm text-muted-foreground hidden sm:inline">
-                {profile?.display_name || profile?.email}
-              </span>
+              <div 
+                className="flex items-center gap-2 cursor-pointer hover:bg-accent/50 px-2 py-1 rounded-md transition-colors group"
+                onClick={() => setShowSettingsModal(true)}
+              >
+                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#F1D302] to-[#FFE55C] flex items-center justify-center text-[#003249] text-xs font-bold">
+                  {profile?.display_name?.charAt(0) || profile?.email?.charAt(0) || 'U'}
+                </div>
+                <span className="text-sm text-muted-foreground hidden sm:inline group-hover:text-foreground transition-colors">
+                  {profile?.display_name || profile?.email}
+                </span>
+                <Settings className="h-4 w-4 text-muted-foreground group-hover:text-foreground transition-colors hidden sm:inline" />
+              </div>
               <Button variant="ghost" size="sm" onClick={handleSignOut}>
                 <LogOut className="h-4 w-4" />
               </Button>
@@ -52,6 +64,12 @@ export function Layout({ children }: { children: React.ReactNode }) {
         </div>
       </header>
       <main className="container mx-auto px-4 py-6">{children}</main>
+
+      {/* Settings Modal */}
+      <AdminSettingsModal 
+        isOpen={showSettingsModal}
+        onClose={() => setShowSettingsModal(false)}
+      />
     </div>
   );
 }

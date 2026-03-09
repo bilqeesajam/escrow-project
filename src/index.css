@@ -4,83 +4,94 @@
 
 @layer base {
   :root {
-    --background: 210 20% 98%;
-    --foreground: 220 30% 10%;
-
-    --card: 0 0% 100%;
-    --card-foreground: 220 30% 10%;
-
-    --popover: 0 0% 100%;
-    --popover-foreground: 220 30% 10%;
-
-    --primary: 220 60% 35%;
-    --primary-foreground: 210 40% 98%;
-
-    --secondary: 210 20% 94%;
-    --secondary-foreground: 220 30% 15%;
-
-    --muted: 210 15% 93%;
-    --muted-foreground: 215 15% 47%;
-
-    --accent: 160 50% 40%;
+    /* Background colors - using #041120, #212227, #1A1F2E */
+    --background: 220 30% 6%; /* #041120 converted to HSL */
+    --foreground: 0 0% 100%; /* White text for dark bg */
+    
+    /* Cards - using #1A1F2E */
+    --card: 220 25% 15%; /* #1A1F2E converted to HSL */
+    --card-foreground: 0 0% 100%; /* White text */
+    
+    /* Popovers */
+    --popover: 220 25% 12%; /* Slightly lighter */
+    --popover-foreground: 0 0% 100%;
+    
+    /* Primary - using #F1D302 (Gold) */
+    --primary: 53 98% 48%; /* #F1D302 converted to HSL */
+    --primary-foreground: 220 30% 6%; /* #041120 for contrast */
+    
+    /* Secondary - using #508991 (Teal) */
+    --secondary: 187 27% 43%; /* #508991 converted to HSL */
+    --secondary-foreground: 0 0% 100%;
+    
+    /* Muted - using #27474E (Dark Teal) */
+    --muted: 190 30% 23%; /* #27474E converted to HSL */
+    --muted-foreground: 187 27% 70%; /* Lighter teal */
+    
+    /* Accent - using #508991 with different shade */
+    --accent: 187 27% 43%; /* #508991 */
     --accent-foreground: 0 0% 100%;
-
+    
+    /* Destructive - keeping similar but adjusting */
     --destructive: 0 72% 51%;
-    --destructive-foreground: 210 40% 98%;
-
-    --border: 214 25% 88%;
-    --input: 214 25% 88%;
-    --ring: 220 60% 35%;
-
+    --destructive-foreground: 0 0% 100%;
+    
+    /* Borders and inputs - using #27474E with opacity */
+    --border: 190 30% 23% / 0.2; /* #27474E with 20% opacity */
+    --input: 190 30% 23% / 0.2;
+    --ring: 53 98% 48%; /* #F1D302 for focus rings */
+    
     --radius: 0.5rem;
-
-    --sidebar-background: 220 25% 12%;
-    --sidebar-foreground: 210 20% 90%;
-    --sidebar-primary: 220 60% 55%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 220 20% 18%;
-    --sidebar-accent-foreground: 210 20% 90%;
-    --sidebar-border: 220 20% 20%;
-    --sidebar-ring: 220 60% 55%;
+    
+    /* Sidebar - using gradient from #041120 to #212227 */
+    --sidebar-background: 220 30% 6%; /* #041120 */
+    --sidebar-foreground: 0 0% 100%;
+    --sidebar-primary: 53 98% 48%; /* #F1D302 */
+    --sidebar-primary-foreground: 220 30% 6%;
+    --sidebar-accent: 187 27% 43%; /* #508991 */
+    --sidebar-accent-foreground: 0 0% 100%;
+    --sidebar-border: 190 30% 23% / 0.3; /* #27474E with opacity */
+    --sidebar-ring: 53 98% 48%; /* #F1D302 */
   }
 
   .dark {
-    --background: 220 25% 8%;
-    --foreground: 210 20% 95%;
-
-    --card: 220 25% 11%;
-    --card-foreground: 210 20% 95%;
-
-    --popover: 220 25% 11%;
-    --popover-foreground: 210 20% 95%;
-
-    --primary: 220 60% 55%;
-    --primary-foreground: 0 0% 100%;
-
-    --secondary: 220 20% 16%;
-    --secondary-foreground: 210 20% 90%;
-
-    --muted: 220 20% 16%;
-    --muted-foreground: 215 15% 55%;
-
-    --accent: 160 50% 45%;
+    /* Since we're already using dark colors, we can keep similar values */
+    --background: 220 30% 4%; /* Even darker */
+    --foreground: 0 0% 100%;
+    
+    --card: 220 25% 12%;
+    --card-foreground: 0 0% 100%;
+    
+    --popover: 220 25% 10%;
+    --popover-foreground: 0 0% 100%;
+    
+    --primary: 53 98% 48%; /* Keep gold consistent */
+    --primary-foreground: 220 30% 6%;
+    
+    --secondary: 187 27% 43%;
+    --secondary-foreground: 0 0% 100%;
+    
+    --muted: 190 30% 20%;
+    --muted-foreground: 187 27% 65%;
+    
+    --accent: 187 27% 40%;
     --accent-foreground: 0 0% 100%;
-
+    
     --destructive: 0 62% 40%;
-    --destructive-foreground: 210 40% 98%;
-
-    --border: 220 20% 18%;
-    --input: 220 20% 18%;
-    --ring: 220 60% 55%;
-
-    --sidebar-background: 220 25% 6%;
-    --sidebar-foreground: 210 20% 85%;
-    --sidebar-primary: 220 60% 55%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 220 20% 12%;
-    --sidebar-accent-foreground: 210 20% 85%;
-    --sidebar-border: 220 20% 14%;
-    --sidebar-ring: 220 60% 55%;
+    --destructive-foreground: 0 0% 100%;
+    
+    --border: 190 30% 23% / 0.3;
+    --input: 190 30% 23% / 0.3;
+    --ring: 53 98% 48%;
+    
+    --sidebar-background: 220 30% 4%;
+    --sidebar-foreground: 0 0% 100%;
+    --sidebar-primary: 53 98% 48%;
+    --sidebar-primary-foreground: 220 30% 6%;
+    --sidebar-accent: 187 27% 40%;
+    --sidebar-accent-foreground: 0 0% 100%;
+    --sidebar-border: 190 30% 23% / 0.4;
+    --sidebar-ring: 53 98% 48%;
   }
 }
 
@@ -92,9 +103,88 @@
   body {
     @apply bg-background text-foreground;
     font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background: linear-gradient(135deg, #041120 0%, #212227 100%);
+    min-height: 100vh;
   }
 
   h1, h2, h3 {
     font-family: 'Playfair Display', Georgia, serif;
+    @apply text-foreground;
   }
+
+  /* Custom scrollbar for the dark theme */
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: #1A1F2E;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: #508991;
+    border-radius: 4px;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: #F1D302;
+  }
+}
+
+@layer components {
+  /* Optional: Add some custom utility classes for your colors */
+  .bg-gradient-dark {
+    background: linear-gradient(135deg, #041120 0%, #212227 100%);
+  }
+
+  .card-dark {
+    background-color: #1A1F2E;
+    border: 1px solid rgba(80, 137, 145, 0.2);
+  }
+
+  .text-gold {
+    color: #F1D302;
+  }
+
+  .text-teal {
+    color: #508991;
+  }
+
+  .border-teal {
+    border-color: rgba(80, 137, 145, 0.2);
+  }
+}
+
+/* Add these classes to your global CSS file (e.g., index.css or App.css) */
+
+.card-3d {
+  @apply bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl;
+  box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.5);
+  transition: all 0.2s ease;
+}
+
+.card-3d:hover {
+  @apply border-white/20;
+  transform: translateY(-2px);
+  box-shadow: 0 20px 40px -15px rgba(241, 211, 2, 0.2);
+}
+
+.button-3d {
+  transition: all 0.2s ease;
+  box-shadow: 0 5px 15px -5px rgba(0, 0, 0, 0.5);
+}
+
+.button-3d:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 15px 25px -10px rgba(241, 211, 2, 0.3);
+}
+
+.status-badge {
+  @apply px-3 py-1 rounded-full text-xs font-semibold;
+}
+
+.input-3d {
+  @apply bg-white/5 border border-white/10 focus:border-[#F1D302]/50 focus:outline-none transition-all;
+  box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.2);
 }
