@@ -17,39 +17,99 @@ export default function Auth() {
   const [tab, setTab] = useState(searchParams.get('tab') || 'signup');
 
   if (user) {
-    navigate('/dashboard', { replace: true });
     return null;
   }
+
+  const handleGoogleSignIn = async () => {
+    try {
+      const isCustomOrLocalDomain =
+        !window.location.hostname.includes("lovable.app") &&
+        !window.location.hostname.includes("lovableproject.com");
+
+      if (isCustomOrLocalDomain) {
+        const { data, error } = await supabase.auth.signInWithOAuth({
+          provider: "google",
+          options: {
+            redirectTo: `${window.location.origin}/auth/callback`,
+            skipBrowserRedirect: true,
+          },
+        });
+
+        if (error) throw error;
+
+        if (data?.url) {
+          window.location.href = data.url;
+        }
+      } else {
+        const { error } = await supabase.auth.signInWithOAuth({
+          provider: "google",
+          options: {
+            redirectTo: `${window.location.origin}/auth/callback`,
+          },
+        });
+
+        if (error) throw error;
+      }
+    } catch (error: any) {
+      toast({
+        title: "Google sign-in failed",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
+  };
 
   const handleSignIn = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setLoading(true);
+
     const fd = new FormData(e.currentTarget);
-    const { error } = await signIn(fd.get('email') as string, fd.get('password') as string);
+    const { error } = await signIn(
+      fd.get("email") as string,
+      fd.get("password") as string,
+    );
+
     setLoading(false);
+
     if (error) {
-      toast({ title: 'Login failed', description: error.message, variant: 'destructive' });
-    } else {
-      navigate('/dashboard');
+      toast({
+        title: "Login failed",
+        description: error.message,
+        variant: "destructive",
+      });
+      return;
     }
+
+    window.location.replace("/dashboard");
   };
 
   const handleSignUp = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setLoading(true);
+
     const fd = new FormData(e.currentTarget);
     const { error } = await signUp(
-      fd.get('email') as string,
-      fd.get('password') as string,
-      fd.get('displayName') as string,
+      fd.get("email") as string,
+      fd.get("password") as string,
+      fd.get("displayName") as string,
     );
+
     setLoading(false);
+
     if (error) {
       toast({ title: 'Signup failed', description: error.message, variant: 'destructive' });
     } else {
       toast({ title: 'Account created', description: 'Check your email to confirm, or log in if email confirmation is disabled.' });
       navigate('/auth');
     }
+
+    toast({
+      title: "Account created",
+      description:
+        "Check your email to confirm, or log in if email confirmation is disabled.",
+    });
+
+    window.location.replace("/dashboard");
   };
 
   return (
@@ -91,12 +151,14 @@ export default function Auth() {
           <CardTitle className="text-2xl text-[#f5b800]">EscrowShield</CardTitle>
           <CardDescription className="text-[#66758a]">Secure escrow transactions</CardDescription>
         </CardHeader>
+
         <CardContent>
           <Tabs value={tab} onValueChange={setTab}>
             <TabsList className="grid w-full grid-cols-2 mb-6 bg-[#1a2a42] rounded-md">
               <TabsTrigger value="login" className="data-[state=active]:bg-[#f5b800] data-[state=active]:text-black data-[state=inactive]:text-[#66758a]">Login</TabsTrigger>
               <TabsTrigger value="signup" className="data-[state=active]:bg-[#f5b800] data-[state=active]:text-black data-[state=inactive]:text-[#66758a]">Sign Up</TabsTrigger>
             </TabsList>
+
             <TabsContent value="login">
               <form onSubmit={handleSignIn} className="space-y-4 mt-4 text-[#66758a] ">
                 <div>
@@ -105,13 +167,19 @@ export default function Auth() {
                 </div>
                 <div>
                   <Label htmlFor="login-password">Password</Label>
-                  <Input id="login-password" name="password" type="password" required />
+                  <Input
+                    id="login-password"
+                    name="password"
+                    type="password"
+                    required
+                  />
                 </div>
                 <Button type="submit" className="w-full bg-[#f5b800] text-black hover:bg-[#e0a500]" disabled={loading}>
                   {loading ? 'Signing in...' : 'Sign In'}
                 </Button>
               </form>
             </TabsContent>
+
             <TabsContent value="signup">
               <form onSubmit={handleSignUp} className="space-y-4 mt-4 text-[#66758a]">
                 <div>

@@ -1,7 +1,7 @@
-import { ReactNode } from 'react';
-import { Navigate } from 'react-router-dom';
-import { useAuth } from '@/hooks/useAuth';
-import type { AppRole } from '@/types/escrow';
+import { ReactNode } from "react";
+import { Navigate, useLocation } from "react-router-dom";
+import { useAuth } from "@/hooks/useAuth";
+import type { AppRole } from "@/types/escrow";
 
 interface Props {
   children: ReactNode;
@@ -10,6 +10,7 @@ interface Props {
 
 export function ProtectedRoute({ children, requiredRole }: Props) {
   const { user, loading, hasRole } = useAuth();
+  const location = useLocation();
 
   if (loading) {
     return (
@@ -19,8 +20,13 @@ export function ProtectedRoute({ children, requiredRole }: Props) {
     );
   }
 
-  if (!user) return <Navigate to="/auth" replace />;
-  if (requiredRole && !hasRole(requiredRole)) return <Navigate to="/dashboard" replace />;
+  if (!user) {
+    return <Navigate to="/auth" replace state={{ from: location }} />;
+  }
+
+  if (requiredRole && !hasRole(requiredRole)) {
+    return <Navigate to="/dashboard" replace />;
+  }
 
   return <>{children}</>;
 }
