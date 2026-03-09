@@ -91,12 +91,12 @@ export function Layout({ children }: { children: React.ReactNode }) {
             EscrowShield
           </Link>
 
-          {user && (
-            <>
-              {/* Desktop nav */}
-              <div className="hidden md:flex items-center gap-2">
-                {navItems}
-                <ThemeToggle />
+          <div className="flex items-center gap-2">
+            <ThemeToggle />
+            {user && (
+              <>
+                {/* Desktop nav */}
+                <div className="hidden md:flex items-center gap-2">
                 <NotificationBell />
                 <Popover>
                   <PopoverTrigger asChild>
@@ -110,7 +110,6 @@ export function Layout({ children }: { children: React.ReactNode }) {
 
               {/* Mobile nav */}
               <div className="flex md:hidden items-center gap-1">
-                <ThemeToggle />
                 <NotificationBell />
                 <Sheet open={open} onOpenChange={setOpen}>
                   <SheetTrigger asChild>
@@ -147,7 +146,8 @@ export function Layout({ children }: { children: React.ReactNode }) {
                 </Sheet>
               </div>
             </>
-          )}
+            )}
+          </div>
         </div>
       </header>
       <main className="container mx-auto px-4 py-6">{children}</main>
