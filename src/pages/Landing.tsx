@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
+import { ThemeToggle } from "@/components/ThemeToggle";
 import {
   Shield,
   ArrowRight,
@@ -31,22 +32,41 @@ export default function Landing() {
             <div className="inline-flex h-9 w-9 items-center justify-center rounded-xl bg-primary/10 border border-border">
               <Shield className="h-5 w-5 text-primary" />
             </div>
-            <span className="text-lg font-bold text-primary tracking-tight" style={{ fontFamily: "'DM Sans', sans-serif" }}>
+            <span
+              className="text-lg font-bold text-primary tracking-tight"
+              style={{ fontFamily: "'DM Sans', sans-serif" }}
+            >
               EscrowShield
             </span>
           </Link>
 
           <nav className="hidden md:flex items-center gap-6 text-sm font-medium text-muted-foreground">
-            <a href="#how-it-works" className="hover:text-foreground transition-colors">How it works</a>
-            <a href="#features" className="hover:text-foreground transition-colors">Features</a>
-            <Link to="/about" className="hover:text-foreground transition-colors">About</Link>
+            <a
+              href="#how-it-works"
+              className="hover:text-foreground transition-colors"
+            >
+              How it works
+            </a>
+            <a
+              href="#features"
+              className="hover:text-foreground transition-colors"
+            >
+              Features
+            </a>
+            <Link
+              to="/about"
+              className="hover:text-foreground transition-colors"
+            >
+              About
+            </Link>
           </nav>
 
           <div className="flex items-center gap-2">
+            <ThemeToggle />
             <Button asChild variant="ghost" size="sm">
               <Link to="/auth">Sign In</Link>
             </Button>
-            <Button asChild size="sm">
+            <Button asChild size="sm" className="hidden md:flex">
               <Link to="/auth">Get Started</Link>
             </Button>
           </div>
@@ -73,19 +93,32 @@ export default function Landing() {
                 <span className="text-primary"> trust and clarity</span>
               </h1>
 
-              <p className="text-lg md:text-xl text-muted-foreground mb-10 max-w-2xl mx-auto leading-relaxed" style={{ fontFamily: "'DM Sans', sans-serif" }}>
-                EscrowShield holds funds securely until both buyer and seller confirm the deal is done. 
-                Clear terms, full visibility, built-in dispute resolution.
+              <p
+                className="text-lg md:text-xl text-muted-foreground mb-10 max-w-2xl mx-auto leading-relaxed"
+                style={{ fontFamily: "'DM Sans', sans-serif" }}
+              >
+                EscrowShield holds funds securely until both buyer and seller
+                confirm the deal is done. Clear terms, full visibility, built-in
+                dispute resolution.
               </p>
 
               <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-                <Button asChild size="lg" className="w-full sm:w-auto text-base px-8 h-12">
+                <Button
+                  asChild
+                  size="lg"
+                  className="w-full sm:w-auto text-base px-8 h-12"
+                >
                   <Link to="/auth">
                     Start a Transaction <ArrowRight className="h-4 w-4 ml-2" />
                   </Link>
                 </Button>
 
-                <Button asChild size="lg" variant="outline" className="w-full sm:w-auto text-base px-8 h-12">
+                <Button
+                  asChild
+                  size="lg"
+                  variant="outline"
+                  className="w-full sm:w-auto text-base px-8 h-12"
+                >
                   <Link to="/about">
                     Learn more <ChevronRight className="h-4 w-4 ml-1" />
                   </Link>
@@ -100,8 +133,16 @@ export default function Landing() {
       <section className="container mx-auto px-4 pb-16">
         <div className="grid grid-cols-3 gap-4 max-w-3xl mx-auto">
           {stats.map((s) => (
-            <div key={s.label} className="text-center p-6 rounded-2xl bg-card border border-border">
-              <p className="text-2xl md:text-3xl font-bold text-primary" style={{ fontFamily: "'DM Sans', sans-serif" }}>{s.value}</p>
+            <div
+              key={s.label}
+              className="text-center p-6 rounded-2xl bg-card border border-border"
+            >
+              <p
+                className="text-2xl md:text-3xl font-bold text-primary"
+                style={{ fontFamily: "'DM Sans', sans-serif" }}
+              >
+                {s.value}
+              </p>
               <p className="text-sm text-muted-foreground mt-1">{s.label}</p>
             </div>
           ))}
@@ -111,9 +152,12 @@ export default function Landing() {
       {/* Features */}
       <section id="features" className="container mx-auto px-4 pb-20">
         <div className="text-center mb-12">
-          <h2 className="text-3xl md:text-4xl font-bold tracking-tight">Why choose EscrowShield?</h2>
+          <h2 className="text-3xl md:text-4xl font-bold tracking-tight">
+            Why choose EscrowShield?
+          </h2>
           <p className="text-muted-foreground mt-3 max-w-xl mx-auto">
-            Every feature is designed to protect both parties and keep deals moving forward.
+            Every feature is designed to protect both parties and keep deals
+            moving forward.
           </p>
         </div>
         <div className="grid md:grid-cols-3 gap-6 max-w-5xl mx-auto">
@@ -157,7 +201,9 @@ export default function Landing() {
                 <Icon className="h-6 w-6 text-primary" />
               </div>
               <h3 className="text-lg font-semibold mb-2">{title}</h3>
-              <p className="text-sm text-muted-foreground leading-relaxed">{desc}</p>
+              <p className="text-sm text-muted-foreground leading-relaxed">
+                {desc}
+              </p>
             </div>
           ))}
         </div>
@@ -172,7 +218,8 @@ export default function Landing() {
                 How it works
               </h2>
               <p className="text-muted-foreground mt-3 max-w-lg mx-auto">
-                Four simple steps from agreement to payment. Both sides stay informed at every stage.
+                Four simple steps from agreement to payment. Both sides stay
+                informed at every stage.
               </p>
             </div>
 
@@ -203,15 +250,23 @@ export default function Landing() {
                   desc: "Buyer confirms receipt and funds are released to the seller.",
                 },
               ].map(({ icon: Icon, step, title, desc }) => (
-                <div key={title} className="relative rounded-2xl border border-border bg-background p-8">
-                  <span className="text-5xl font-bold text-primary/10 absolute top-4 right-6" style={{ fontFamily: "'DM Sans', sans-serif" }}>
+                <div
+                  key={title}
+                  className="relative rounded-2xl border border-border bg-background p-8"
+                >
+                  <span
+                    className="text-5xl font-bold text-primary/10 absolute top-4 right-6"
+                    style={{ fontFamily: "'DM Sans', sans-serif" }}
+                  >
                     {step}
                   </span>
                   <div className="inline-flex items-center justify-center h-12 w-12 rounded-xl bg-primary/10 mb-4 border border-primary/20">
                     <Icon className="h-6 w-6 text-primary" />
                   </div>
                   <h3 className="text-lg font-semibold mb-2">{title}</h3>
-                  <p className="text-sm text-muted-foreground leading-relaxed">{desc}</p>
+                  <p className="text-sm text-muted-foreground leading-relaxed">
+                    {desc}
+                  </p>
                 </div>
               ))}
             </div>
@@ -226,7 +281,8 @@ export default function Landing() {
             Ready to make your next deal safer?
           </h2>
           <p className="text-lg text-muted-foreground mb-8 max-w-xl mx-auto">
-            Create your first escrow transaction in minutes. No complexity, no fine print.
+            Create your first escrow transaction in minutes. No complexity, no
+            fine print.
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
             <Button asChild size="lg" className="text-base px-8 h-12">
@@ -234,10 +290,13 @@ export default function Landing() {
                 Get Started Free <ArrowRight className="h-4 w-4 ml-2" />
               </Link>
             </Button>
-            <Button asChild size="lg" variant="outline" className="text-base px-8 h-12">
-              <Link to="/about">
-                Read the full guide
-              </Link>
+            <Button
+              asChild
+              size="lg"
+              variant="outline"
+              className="text-base px-8 h-12"
+            >
+              <Link to="/about">Read the full guide</Link>
             </Button>
           </div>
         </div>
@@ -246,11 +305,28 @@ export default function Landing() {
       {/* Footer */}
       <footer className="border-t border-border/60">
         <div className="container mx-auto px-4 py-10 flex flex-col sm:flex-row items-center justify-between gap-4 text-sm text-muted-foreground">
-          <span>© {new Date().getFullYear()} EscrowShield. All rights reserved.</span>
+          <span>
+            © {new Date().getFullYear()} EscrowShield. All rights reserved.
+          </span>
           <div className="flex items-center gap-6">
-            <a href="#how-it-works" className="hover:text-foreground transition-colors">How it works</a>
-            <Link to="/about" className="hover:text-foreground transition-colors">About</Link>
-            <Link to="/auth" className="hover:text-foreground transition-colors">Get started</Link>
+            <a
+              href="#how-it-works"
+              className="hover:text-foreground transition-colors"
+            >
+              How it works
+            </a>
+            <Link
+              to="/about"
+              className="hover:text-foreground transition-colors"
+            >
+              About
+            </Link>
+            <Link
+              to="/auth"
+              className="hover:text-foreground transition-colors"
+            >
+              Get started
+            </Link>
           </div>
         </div>
       </footer>

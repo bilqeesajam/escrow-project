@@ -8,7 +8,6 @@ import { PublicRoute } from "@/components/PublicRoute";
 import { AuthHistoryGuard } from "@/components/AuthHistoryGuard";
 import { ThemeProvider } from "@/components/ThemeProvider";
 
-import { ThemeProvider } from "@/components/ThemeProvider";
 import Landing from "./pages/Landing";
 import About from "./pages/About";
 import Auth from "./pages/Auth";
