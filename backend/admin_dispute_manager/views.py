@@ -20,6 +20,8 @@ STATUS_ALIASES = {
     'release_to_seller': 'resolved',
     'refund_buyer': 'resolved',
     'split': 'under_review',
+    'under-review': 'under_review',
+    'under review': 'under_review',
 }
 
 # Joins based on actual schema:
@@ -144,7 +146,13 @@ def list_disputes(request):
     query = supabase.table("disputes").select(DISPUTE_JOIN).order("created_at", desc=True)
 
     if status:
-        query = query.ilike("status", status)
+        normalized_status = _normalize_status(status)
+        if normalized_status not in ALLOWED_DISPUTE_STATUSES:
+            return JsonResponse(
+                {'error': f"Invalid status '{status}'. Allowed values: {sorted(ALLOWED_DISPUTE_STATUSES)}"},
+                status=400,
+            )
+        query = query.eq("status", normalized_status)
 
     if start_date:
         parsed_start = parse_date(start_date)
@@ -174,7 +182,8 @@ def list_disputes(request):
 
 @require_http_methods(["GET"])
 def list_disputes_by_status(request, status):
-    if status not in ALLOWED_DISPUTE_STATUSES:
+    normalized_status = _normalize_status(status)
+    if normalized_status not in ALLOWED_DISPUTE_STATUSES:
         return JsonResponse(
             {'error': f"Invalid status '{status}'. Allowed values: {sorted(ALLOWED_DISPUTE_STATUSES)}"},
             status=400,
@@ -182,7 +191,7 @@ def list_disputes_by_status(request, status):
 
     response = supabase.table("disputes") \
         .select(DISPUTE_JOIN) \
-        .ilike("status", status) \
+        .eq("status", normalized_status) \
         .order("created_at", desc=True) \
         .execute()
 
@@ -190,7 +199,7 @@ def list_disputes_by_status(request, status):
 
     return JsonResponse({
         'count': len(data),
-        'status_filter': status,
+        'status_filter': normalized_status,
         'results': data,
     }, safe=False)
 

@@ -7,6 +7,10 @@ urlpatterns = [
     # 
     path('api/disputes/', views.list_disputes, name='list_disputes'), #GET
 
+    # Schema-aligned status route (open, under_review, resolved)
+    path('api/disputes/status/<str:status>/', views.list_disputes_by_status, name='list_disputes_by_status'), #GET
+
+    # Legacy explicit routes
     path('api/disputes/status/open/', views.list_disputes_by_status, {'status': 'open'}, name='list_disputes_open'), #GET
     path('api/disputes/status/under-review/', views.list_disputes_by_status, {'status': 'under_review'}, name='list_disputes_under_review'), #GET
     path('api/disputes/status/resolved/', views.list_disputes_by_status, {'status': 'resolved'}, name='list_disputes_resolved'), #GET
