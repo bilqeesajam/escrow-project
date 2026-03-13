@@ -1,30 +1,39 @@
-import { ReactNode } from "react";
-import { Navigate, useLocation } from "react-router-dom";
-import { useAuth } from "@/hooks/useAuth";
-import type { AppRole } from "@/types/escrow";
+import { Navigate } from "react-router-dom";
+import { useAuth } from "@/lib/auth-context";
+import { Loader2 } from "lucide-react";
 
-interface Props {
-  children: ReactNode;
-  requiredRole?: AppRole;
+interface ProtectedRouteProps {
+  children: React.ReactNode;
+  requireKyc?: boolean;
+  requireRole?: "admin" | "client" | "hustler";
 }
 
-export function ProtectedRoute({ children, requiredRole }: Props) {
-  const { user, loading, hasRole } = useAuth();
-  const location = useLocation();
+export function ProtectedRoute({ children, requireKyc = true, requireRole }: ProtectedRouteProps) {
+  const { user, profile, loading } = useAuth();
 
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
       </div>
     );
   }
 
-  if (!user) {
-    return <Navigate to="/auth" replace state={{ from: location }} />;
+  if (!user) return <Navigate to="/login" replace />;
+
+  // No profile yet — need to choose role
+  if (!profile?.role) return <Navigate to="/choose-role" replace />;
+
+  // KYC not submitted yet
+  if (requireKyc && !profile.kyc_status) return <Navigate to="/kyc" replace />;
+
+  // KYC pending/rejected
+  if (requireKyc && profile.kyc_status !== "approved" && profile.role !== "admin") {
+    return <Navigate to="/kyc-pending" replace />;
   }
 
-  if (requiredRole && !hasRole(requiredRole)) {
+  // Role gate
+  if (requireRole && profile.role !== requireRole) {
     return <Navigate to="/dashboard" replace />;
   }
 

@@ -9,16 +9,6 @@ console.log('=============================================\n');
 // All files from the original template must exists
 const ALL_REQUIRED_FILES = [
   // Public assets
-  'public/elogo1.png',
-  'public/elogo2.png',
-  'public/elogo3.png',
-  'public/elogo4.png',
-  'public/elogo5.png',
-  'public/elogo6.png',
-  'public/elogo7.png',
-  'public/elogo8.png',
-  'public/elogo9.png',
-  'public/elogo10.png',
   'public/favicon.ico',
   'public/placeholder.svg',
   'public/robots.txt',
@@ -75,37 +65,58 @@ const ALL_REQUIRED_FILES = [
   'src/components/ui/use-toast.ts',
   
   // Core components
-  'src/components/CheckoutModal.tsx',
-  'src/components/DisputeDialog.tsx',
-  'src/components/Layout.tsx',
+  'src/components/AppLayout.tsx',
+  'src/components/AppSidebar.tsx',
+  'src/components/ConfirmModal.tsx',
+  'src/components/EmptyState.tsx',
+  'src/components/GigCard.tsx',
   'src/components/NavLink.tsx',
   'src/components/NotificationBell.tsx',
+  'src/components/PINInput.tsx',
   'src/components/ProtectedRoute.tsx',
   'src/components/StatusBadge.tsx',
-  'src/components/Timeline.tsx',
-  
+  'src/components/ThemeToggle.tsx',
+  'src/App.css',
+  'src/App.tsx',
+  'src/index.css',
+  'src/main.tsx',
+  'src/vite-env.d.ts',
+
+  //supabase integrations
+  'src/integrations/supabase/client.ts',
+  'src/integrations/supabase/types.ts',
+
   // Hooks
   'src/hooks/use-mobile.tsx',
   'src/hooks/use-toast.ts',
-  'src/hooks/useAuth.ts',
-  'src/hooks/useNotifications.ts',
   
   // Lib
+  'src/lib/auth-context.tsx',
+  'src/lib/theme-context.tsx',
   'src/lib/utils.ts',
-  'src/lib/supabaseClient.ts',
   
   // Pages
-  'src/pages/About.tsx',
-  'src/pages/AdminDashboard.tsx',
-  'src/pages/AdminDisputes.tsx',
-  'src/pages/AdminUsers.tsx',
-  'src/pages/Auth.tsx',
-  'src/pages/Dashboard.tsx',
-  'src/pages/DisputeDetail.tsx',
-  'src/pages/Landing.tsx',
-  'src/pages/NewTransaction.tsx',
+  'src/pages/admin/AdminDashboardPage.tsx',
+  'src/pages/admin/AdminDisputesPage.tsx',
+  'src/pages/admin/AdminGigsPage.tsx',
+  'src/pages/admin/AdminKYCPage.tsx',
+  'src/pages/admin/AdminUsersPage.tsx',
+  'src/pages/hustlers/EarningsPage.tsx',
+  'src/pages/hustlers/MarketplacePage.tsx',
+  'src/pages/hustlers/MyJobsPage.tsx',
+  'src/pages/users/MyGigsPage.tsx',
+  'src/pages/users/PostGigPage.tsx',
+  'src/pages/users/WalletPage.tsx',
+  'src/pages/ChooseRolePage.tsx',
+  'src/pages/DashboardRedirect.tsx',
+  'src/pages/GigDetailPage.tsx',
+  'src/pages/Index.tsx',
+  'src/pages/KYCPage.tsx',
+  'src/pages/KYCPendingPage.tsx',
+  'src/pages/LoginPage.tsx',
   'src/pages/NotFound.tsx',
-  'src/pages/TransactionDetail.tsx',
+  'src/pages/ProfilePage.tsx',
+  'src/pages/SignupPage.tsx',
   
   // Test files
   'src/test/example.test.ts',
@@ -118,13 +129,19 @@ const ALL_REQUIRED_FILES = [
   'src/main.tsx',
   'src/vite-env.d.ts',
 
-  // Type files
-  'src/types/escrow.ts',
+  // Supabase files
+  'supabase/migrations/20260309173246_a5aa4d4f-7f7e-4661-9339-123824fb405c.sql',
+  'supabase/migrations/20260309173255_cc41ee1f-c658-4956-8fa1-d97f1f38a7cf.sql',
+  'supabase/config.toml',
+
+  // env
+  '.env',
   
   // Git
   '.gitignore',
   
   // Package management
+  'bun.lock',
   'bun.lockb',
   'package-lock.json',
   'package.json',
@@ -140,7 +157,9 @@ const ALL_REQUIRED_FILES = [
   'tsconfig.json',
   'tsconfig.node.json',
   'vite.config.ts',
-  'vitest.config.ts'
+  'vitest.config.ts',
+  'playwright-fixture.ts',
+  'playwright.config.ts'
 ];
 
 console.log(`🔍 Checking ${ALL_REQUIRED_FILES.length} template files...\n`);
@@ -183,7 +202,6 @@ if (missingFiles.length > 0) {
   
   // Group missing files by category
   const categories = {
-    'Backend': missingFiles.filter(f => f.includes('backend/')),
     'Public Assets': missingFiles.filter(f => f.includes('public/')),
     'UI Components': missingFiles.filter(f => f.includes('components/ui/')),
     'Core Components': missingFiles.filter(f => f.includes('components/') && !f.includes('ui/')),
@@ -197,7 +215,7 @@ if (missingFiles.length > 0) {
       !f.includes('lib/') && 
       !f.includes('pages/') && 
       !f.includes('test/')),
-    'Config Files': missingFiles.filter(f => !f.includes('src/') && !f.includes('public/') && !f.includes('backend/'))
+    'Config Files': missingFiles.filter(f => !f.includes('src/') && !f.includes('public/'))
   };
   
   // Show missing files by category
@@ -235,22 +253,6 @@ try {
 } catch (error) {
   console.log('Could not analyze package.json');
 }
-
-// Check backend requirements.txt
-console.log('\n🔧 Verifying backend/requirements.txt...');
-try {
-  const requirementsPath = path.join(process.cwd(), 'backend/requirements.txt');
-  if (fs.existsSync(requirementsPath)) {
-    const requirements = fs.readFileSync(requirementsPath, 'utf8');
-    const lines = requirements.split('\n').filter(line => line.trim() && !line.startsWith('#'));
-    console.log(`Found ${lines.length} Python dependencies`);
-  }
-} catch (error) {
-  console.log('Could not analyse requirements.txt');
-}
-
-console.log('\n Project is ready for CI/CD!');
-console.log('Files can be modified, but must not be deleted from the template.');
 
 // Exit with success code 0
 process.exit(0);

@@ -1,9 +1,25 @@
-import type { TransactionEvent } from '@/types/escrow';
-import { formatDistanceToNow } from 'date-fns';
+import { formatDistanceToNow } from "date-fns";
 import {
-  FileText, UserCheck, CreditCard, CheckCircle2, XCircle,
-  Truck, ThumbsUp, Unlock, AlertTriangle, Gavel, Ban, Clock
-} from 'lucide-react';
+  FileText,
+  UserCheck,
+  CreditCard,
+  CheckCircle2,
+  XCircle,
+  Truck,
+  ThumbsUp,
+  Unlock,
+  AlertTriangle,
+  Gavel,
+  Ban,
+  Clock,
+} from "lucide-react";
+
+export type TimelineEvent = {
+  id: string;
+  event_type: string;
+  message: string;
+  created_at: string;
+};
 
 const EVENT_ICONS: Record<string, React.ElementType> = {
   created: FileText,
@@ -19,24 +35,32 @@ const EVENT_ICONS: Record<string, React.ElementType> = {
   cancelled: Ban,
 };
 
-export function Timeline({ events }: { events: TransactionEvent[] }) {
+export function Timeline({ events }: { events: TimelineEvent[] }) {
   return (
     <div className="space-y-0">
       {events.map((event, idx) => {
         const Icon = EVENT_ICONS[event.event_type] || Clock;
         const isLast = idx === events.length - 1;
+
         return (
           <div key={event.id} className="flex gap-3">
             <div className="flex flex-col items-center">
               <div className="h-8 w-8 rounded-full bg-muted flex items-center justify-center shrink-0">
                 <Icon className="h-4 w-4 text-muted-foreground" />
               </div>
-              {!isLast && <div className="w-px bg-border flex-1 min-h-[24px]" />}
+
+              {!isLast && (
+                <div className="w-px bg-border flex-1 min-h-[24px]" />
+              )}
             </div>
+
             <div className="pb-4">
               <p className="text-sm font-medium">{event.message}</p>
+
               <p className="text-xs text-muted-foreground">
-                {formatDistanceToNow(new Date(event.created_at), { addSuffix: true })}
+                {formatDistanceToNow(new Date(event.created_at), {
+                  addSuffix: true,
+                })}
               </p>
             </div>
           </div>
