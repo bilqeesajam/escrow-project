@@ -1,14 +1,3 @@
-/**
- * PublicLayout.tsx
- * Shared wrapper for all public-facing pages (Pricing, Contact, Terms, Privacy).
- * Drop-in replacement for the per-page copy-pasted navbar + footer.
- *
- * Usage:
- *   <PublicLayout>
- *     <YourPageContent />
- *   </PublicLayout>
- */
-
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import {

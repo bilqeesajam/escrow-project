@@ -105,7 +105,7 @@ export default function Index() {
             <button onClick={() => scrollTo("how-it-works")} className={navLinkClass}>How it works</button>
             <button onClick={() => scrollTo("features")}     className={navLinkClass}>Features</button>
             <button onClick={() => scrollTo("faq")}          className={navLinkClass}>FAQ</button>
-            <Link to="/pricing"                              className={`${navLinkClass} text-xs`}>Pricing</Link>
+            <Link to="/pricing" className={navLinkClass}>Pricing</Link>
           </div>
 
           {/* Right side — always visible */}
@@ -383,60 +383,109 @@ export default function Index() {
       <footer className="border-t border-border bg-card/60">
         <div className="container mx-auto px-6 py-14">
           <div className="grid md:grid-cols-4 gap-10 mb-10">
+
+            {/* Brand */}
             <div>
               <Link to="/" className="flex items-center gap-2 mb-4">
                 <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10 border border-primary/20">
                   <Shield className="h-4 w-4 text-primary" />
                 </div>
-                <span className="font-bold text-foreground text-sm">Gig<span className="text-primary">Hold</span></span>
+                <span className="font-bold text-foreground text-sm">
+                  Gig<span className="text-primary">Hold</span>
+                </span>
               </Link>
               <p className="text-xs text-muted-foreground leading-relaxed">
                 Secure escrow infrastructure for every gig transaction in South Africa.
               </p>
             </div>
 
-            {[
-              {
-                heading: "Product",
-                links: [
-                  { label: "Features",     action: () => scrollTo("features")     },
-                  { label: "How it Works", action: () => scrollTo("how-it-works") },
-                  { label: "FAQ",          action: () => scrollTo("faq")          },
-                ],
-              },
-              {
-                heading: "Company",
-                links: [
-                  { label: "Contact Us", href: "/contact" },
-                ],
-              },
-              {
-                heading: "Legal",
-                links: [
-                  { label: "Terms of Service", href: "/terms"   },
-                  { label: "Privacy Policy",   href: "/privacy" },
-                ],
-              },
-            ].map(col => (
-              <div key={col.heading}>
-                <h4 className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-4">{col.heading}</h4>
-                <div className="flex flex-col gap-3">
-                  {col.links.map(link => (
-                    "href" in link ? (
-                      <Link key={link.label} to={link.href} onClick={() => window.scrollTo(0,0)} className="text-sm text-muted-foreground hover:text-foreground transition-colors">{link.label}</Link>
-                    ) : (
-                      <button key={link.label} onClick={link.action} className="text-sm text-muted-foreground hover:text-foreground transition-colors text-left">{link.label}</button>
-                    )
-                  ))}
-                </div>
+            {/* Product */}
+            <div>
+              <h4 className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-4">
+                Product
+              </h4>
+              <div className="flex flex-col gap-3 text-sm text-muted-foreground">
+                <button
+                  onClick={() => scrollTo("features")}
+                  className="hover:text-foreground transition-colors text-left"
+                >
+                  Features
+                </button>
+
+                <button
+                  onClick={() => scrollTo("how-it-works")}
+                  className="hover:text-foreground transition-colors text-left"
+                >
+                  How it Works
+                </button>
+
+                <button
+                  onClick={() => scrollTo("faq")}
+                  className="hover:text-foreground transition-colors text-left"
+                >
+                  FAQ
+                </button>
+
+                <Link
+                  to="/pricing"
+                  onClick={() => window.scrollTo(0, 0)}
+                  className="hover:text-foreground transition-colors"
+                >
+                  Pricing
+                </Link>
               </div>
-            ))}
+            </div>
+
+            {/* Company */}
+            <div>
+              <h4 className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-4">
+                Company
+              </h4>
+              <div className="flex flex-col gap-3 text-sm text-muted-foreground">
+                <Link
+                  to="/contact"
+                  onClick={() => window.scrollTo(0, 0)}
+                  className="hover:text-foreground transition-colors"
+                >
+                  Contact Us
+                </Link>
+              </div>
+            </div>
+
+            {/* Legal */}
+            <div>
+              <h4 className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-4">
+                Legal
+              </h4>
+              <div className="flex flex-col gap-3 text-sm text-muted-foreground">
+                <Link
+                  to="/terms"
+                  onClick={() => window.scrollTo(0, 0)}
+                  className="hover:text-foreground transition-colors"
+                >
+                  Terms of Service
+                </Link>
+
+                <Link
+                  to="/privacy"
+                  onClick={() => window.scrollTo(0, 0)}
+                  className="hover:text-foreground transition-colors"
+                >
+                  Privacy Policy
+                </Link>
+              </div>
+            </div>
+
           </div>
 
+          {/* Bottom */}
           <div className="border-t border-border pt-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-muted-foreground">
             <span>© {new Date().getFullYear()} GigHold. All rights reserved.</span>
+
             <Button asChild size="sm" variant="ghost" className="text-xs rounded-lg">
-              <Link to="/signup">Get started free <ArrowRight className="h-3 w-3 ml-1" /></Link>
+              <Link to="/signup">
+                Get started free <ArrowRight className="h-3 w-3 ml-1" />
+              </Link>
             </Button>
           </div>
         </div>
