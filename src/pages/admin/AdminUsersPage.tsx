@@ -188,7 +188,7 @@ export default function AdminUsersPage() {
             <table className="w-full text-sm">
               <thead>
                 <tr className="bg-muted/50 border-b border-border">
-                  {["Name", "Email", "Phone", "Role", "KYC", "Balance", "Joined"].map(h => (
+                  {["Name", "Phone", "Role", "KYC", "Balance", "Joined"].map(h => (
                     <th key={h} className="text-left px-4 py-3 text-xs font-semibold text-muted-foreground whitespace-nowrap">{h}</th>
                   ))}
                 </tr>
@@ -204,7 +204,7 @@ export default function AdminUsersPage() {
                       <p className="font-medium text-foreground">{u.full_name ?? "—"}</p>
                       <p className="text-[10px] font-mono text-muted-foreground">{u.id_number ?? ""}</p>
                     </td>
-                    <td className="px-4 py-3 text-muted-foreground text-xs">{u.email ?? "—"}</td>
+                    {/* <td className="px-4 py-3 text-muted-foreground text-xs">{u.email ?? "—"}</td> */}
                     <td className="px-4 py-3 text-muted-foreground">{u.phone ?? "—"}</td>
                     <td className="px-4 py-3">
                       {u.role ? (
