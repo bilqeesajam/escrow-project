@@ -7,8 +7,6 @@ export type Json =
   | Json[]
 
 export type Database = {
-  // Allows to automatically instantiate createClient with right options
-  // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
     PostgrestVersion: "14.1"
   }
@@ -17,7 +15,7 @@ export type Database = {
       disputes: {
         Row: {
           admin_notes: string | null
-          created_at: string | null
+          created_at: string
           gig_id: string
           id: string
           raised_by: string
@@ -27,7 +25,7 @@ export type Database = {
         }
         Insert: {
           admin_notes?: string | null
-          created_at?: string | null
+          created_at?: string
           gig_id: string
           id?: string
           raised_by: string
@@ -37,7 +35,7 @@ export type Database = {
         }
         Update: {
           admin_notes?: string | null
-          created_at?: string | null
+          created_at?: string
           gig_id?: string
           id?: string
           raised_by?: string
@@ -65,51 +63,84 @@ export type Database = {
       gigs: {
         Row: {
           budget: number
+          cart_value: number | null
           category: Database["public"]["Enums"]["gig_category"]
-          client_confirmed: boolean | null
+          client_confirmed: boolean
           client_id: string
           completion_pin: string | null
-          created_at: string | null
-          description: string
-          hustler_confirmed: boolean | null
+          created_at: string
+          description: string | null
+          hustler_confirmed: boolean
           hustler_id: string | null
           id: string
-          location: string
+          location: string | null
+          platform_fee_percentage: number | null
+          pricing_adjustment_pct: number | null
+          pricing_complexity_multiplier: number | null
+          pricing_config_id: string | null
+          pricing_fee: number | null
+          pricing_inputs: Json | null
+          pricing_snapshot: Json | null
+          pricing_status: Database["public"]["Enums"]["pricing_approval_status"] | null
+          pricing_subtotal: number | null
+          pricing_total: number | null
           status: Database["public"]["Enums"]["gig_status"]
           title: string
-          updated_at: string | null
+          updated_at: string
         }
         Insert: {
           budget: number
+          cart_value?: number | null
           category?: Database["public"]["Enums"]["gig_category"]
-          client_confirmed?: boolean | null
+          client_confirmed?: boolean
           client_id: string
           completion_pin?: string | null
-          created_at?: string | null
-          description: string
-          hustler_confirmed?: boolean | null
+          created_at?: string
+          description?: string | null
+          hustler_confirmed?: boolean
           hustler_id?: string | null
           id?: string
-          location: string
+          location?: string | null
+          platform_fee_percentage?: number | null
+          pricing_adjustment_pct?: number | null
+          pricing_complexity_multiplier?: number | null
+          pricing_config_id?: string | null
+          pricing_fee?: number | null
+          pricing_inputs?: Json | null
+          pricing_snapshot?: Json | null
+          pricing_status?: Database["public"]["Enums"]["pricing_approval_status"] | null
+          pricing_subtotal?: number | null
+          pricing_total?: number | null
           status?: Database["public"]["Enums"]["gig_status"]
           title: string
-          updated_at?: string | null
+          updated_at?: string
         }
         Update: {
           budget?: number
+          cart_value?: number | null
           category?: Database["public"]["Enums"]["gig_category"]
-          client_confirmed?: boolean | null
+          client_confirmed?: boolean
           client_id?: string
           completion_pin?: string | null
-          created_at?: string | null
-          description?: string
-          hustler_confirmed?: boolean | null
+          created_at?: string
+          description?: string | null
+          hustler_confirmed?: boolean
           hustler_id?: string | null
           id?: string
-          location?: string
+          location?: string | null
+          platform_fee_percentage?: number | null
+          pricing_adjustment_pct?: number | null
+          pricing_complexity_multiplier?: number | null
+          pricing_config_id?: string | null
+          pricing_fee?: number | null
+          pricing_inputs?: Json | null
+          pricing_snapshot?: Json | null
+          pricing_status?: Database["public"]["Enums"]["pricing_approval_status"] | null
+          pricing_subtotal?: number | null
+          pricing_total?: number | null
           status?: Database["public"]["Enums"]["gig_status"]
           title?: string
-          updated_at?: string | null
+          updated_at?: string
         }
         Relationships: [
           {
@@ -126,30 +157,37 @@ export type Database = {
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "gigs_pricing_config_id_fkey"
+            columns: ["pricing_config_id"]
+            isOneToOne: false
+            referencedRelation: "pricing_config"
+            referencedColumns: ["id"]
+          },
         ]
       }
       notifications: {
         Row: {
-          created_at: string | null
+          created_at: string
           gig_id: string | null
           id: string
-          is_read: boolean | null
+          is_read: boolean
           message: string
           user_id: string
         }
         Insert: {
-          created_at?: string | null
+          created_at?: string
           gig_id?: string | null
           id?: string
-          is_read?: boolean | null
+          is_read?: boolean
           message: string
           user_id: string
         }
         Update: {
-          created_at?: string | null
+          created_at?: string
           gig_id?: string | null
           id?: string
-          is_read?: boolean | null
+          is_read?: boolean
           message?: string
           user_id?: string
         }
@@ -170,71 +208,263 @@ export type Database = {
           },
         ]
       }
-      profiles: {
+      pricing_config: {
         Row: {
-          balance: number | null
+          base_hourly_rate: number
+          category: Database["public"]["Enums"]["gig_category"]
+          complexity_multipliers: Json
           created_at: string | null
-          full_name: string | null
           id: string
-          id_number: string | null
-          kyc_status: Database["public"]["Enums"]["kyc_status"] | null
-          phone: string | null
-          role: Database["public"]["Enums"]["user_role"] | null
-          avatar_url: string | null
+          max_budget: number
+          min_budget: number
+          per_km_rate: number
+          platform_fee_percentage: number
+          suggested_band_pct: number
+          updated_at: string | null
+          updated_by: string | null
+          updated_reason: string | null
+        }
+        Insert: {
+          base_hourly_rate: number
+          category: Database["public"]["Enums"]["gig_category"]
+          complexity_multipliers?: Json
+          created_at?: string | null
+          id?: string
+          max_budget: number
+          min_budget: number
+          per_km_rate: number
+          platform_fee_percentage: number
+          suggested_band_pct?: number
+          updated_at?: string | null
+          updated_by?: string | null
+          updated_reason?: string | null
+        }
+        Update: {
+          base_hourly_rate?: number
+          category?: Database["public"]["Enums"]["gig_category"]
+          complexity_multipliers?: Json
+          created_at?: string | null
+          id?: string
+          max_budget?: number
+          min_budget?: number
+          per_km_rate?: number
+          platform_fee_percentage?: number
+          suggested_band_pct?: number
+          updated_at?: string | null
+          updated_by?: string | null
+          updated_reason?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pricing_config_updated_by_fkey"
+            columns: ["updated_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      pricing_config_history: {
+        Row: {
+          after_data: Json | null
+          before_data: Json | null
+          change_reason: string
+          change_type: string
+          changed_by: string | null
+          created_at: string | null
+          id: string
+          category: Database["public"]["Enums"]["gig_category"]
+          pricing_config_id: string | null
+        }
+        Insert: {
+          after_data?: Json | null
+          before_data?: Json | null
+          change_reason: string
+          change_type: string
+          changed_by?: string | null
+          created_at?: string | null
+          id?: string
+          category: Database["public"]["Enums"]["gig_category"]
+          pricing_config_id?: string | null
+        }
+        Update: {
+          after_data?: Json | null
+          before_data?: Json | null
+          change_reason?: string
+          change_type?: string
+          changed_by?: string | null
+          created_at?: string | null
+          id?: string
+          category?: Database["public"]["Enums"]["gig_category"]
+          pricing_config_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pricing_config_history_changed_by_fkey"
+            columns: ["changed_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pricing_config_history_pricing_config_id_fkey"
+            columns: ["pricing_config_id"]
+            isOneToOne: false
+            referencedRelation: "pricing_config"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      pricing_overrides: {
+        Row: {
+          adjustment_pct: number
+          admin_id: string | null
+          admin_note: string | null
+          category: Database["public"]["Enums"]["gig_category"]
+          client_id: string
+          created_at: string | null
+          gig_id: string | null
+          id: string
+          reason: string | null
+          requested_budget: number
+          status: Database["public"]["Enums"]["pricing_override_status"]
+          suggested_budget: number
           updated_at: string | null
         }
         Insert: {
-          balance?: number | null
+          adjustment_pct: number
+          admin_id?: string | null
+          admin_note?: string | null
+          category: Database["public"]["Enums"]["gig_category"]
+          client_id: string
           created_at?: string | null
-          full_name?: string | null
-          id: string
-          id_number?: string | null
-          kyc_status?: Database["public"]["Enums"]["kyc_status"] | null
-          phone?: string | null
-          role?: Database["public"]["Enums"]["user_role"] | null
-          avatar_url?: string | null
+          gig_id?: string | null
+          id?: string
+          reason?: string | null
+          requested_budget: number
+          status?: Database["public"]["Enums"]["pricing_override_status"]
+          suggested_budget: number
           updated_at?: string | null
         }
         Update: {
-          balance?: number | null
+          adjustment_pct?: number
+          admin_id?: string | null
+          admin_note?: string | null
+          category?: Database["public"]["Enums"]["gig_category"]
+          client_id?: string
           created_at?: string | null
+          gig_id?: string | null
+          id?: string
+          reason?: string | null
+          requested_budget?: number
+          status?: Database["public"]["Enums"]["pricing_override_status"]
+          suggested_budget?: number
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pricing_overrides_admin_id_fkey"
+            columns: ["admin_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pricing_overrides_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pricing_overrides_gig_id_fkey"
+            columns: ["gig_id"]
+            isOneToOne: false
+            referencedRelation: "gigs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          balance: number
+          created_at: string
+          full_name: string | null
+          id: string
+          id_number: string | null
+          kyc_status: Database["public"]["Enums"]["kyc_status"]
+          phone: string | null
+          role: Database["public"]["Enums"]["user_role"]
+          updated_at: string
+        }
+        Insert: {
+          avatar_url?: string | null
+          balance?: number
+          created_at?: string
+          full_name?: string | null
+          id: string
+          id_number?: string | null
+          kyc_status?: Database["public"]["Enums"]["kyc_status"]
+          phone?: string | null
+          role?: Database["public"]["Enums"]["user_role"]
+          updated_at?: string
+        }
+        Update: {
+          avatar_url?: string | null
+          balance?: number
+          created_at?: string
           full_name?: string | null
           id?: string
           id_number?: string | null
-          kyc_status?: Database["public"]["Enums"]["kyc_status"] | null
+          kyc_status?: Database["public"]["Enums"]["kyc_status"]
           phone?: string | null
-          role?: Database["public"]["Enums"]["user_role"] | null
-          avatar_url?: string | null
-          updated_at?: string | null
+          role?: Database["public"]["Enums"]["user_role"]
+          updated_at?: string
         }
         Relationships: []
       }
       transactions: {
         Row: {
           amount: number
-          created_at: string | null
+          created_at: string
+          fee_amount: number | null
+          fee_percentage: number | null
           from_user_id: string | null
           gig_id: string | null
           id: string
+          note: string | null
+          subtotal_amount: number | null
           to_user_id: string | null
+          total_amount: number | null
           type: Database["public"]["Enums"]["txn_type"]
         }
         Insert: {
           amount: number
-          created_at?: string | null
+          created_at?: string
+          fee_amount?: number | null
+          fee_percentage?: number | null
           from_user_id?: string | null
           gig_id?: string | null
           id?: string
+          note?: string | null
+          subtotal_amount?: number | null
           to_user_id?: string | null
+          total_amount?: number | null
           type: Database["public"]["Enums"]["txn_type"]
         }
         Update: {
           amount?: number
-          created_at?: string | null
+          created_at?: string
+          fee_amount?: number | null
+          fee_percentage?: number | null
           from_user_id?: string | null
           gig_id?: string | null
           id?: string
+          note?: string | null
+          subtotal_amount?: number | null
           to_user_id?: string | null
+          total_amount?: number | null
           type?: Database["public"]["Enums"]["txn_type"]
         }
         Relationships: [
@@ -288,6 +518,10 @@ export type Database = {
         Args: { _user_id: string }
         Returns: Database["public"]["Enums"]["kyc_status"]
       }
+      get_my_role: {
+        Args: Record<PropertyKey, never>
+        Returns: Database["public"]["Enums"]["user_role"]
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["user_role"]
@@ -301,7 +535,6 @@ export type Database = {
       }
     }
     Enums: {
-      user_role: "client" | "hustler" | "admin"
       dispute_status:
         | "open"
         | "under_review"
@@ -317,7 +550,10 @@ export type Database = {
         | "disputed"
         | "cancelled"
       kyc_status: "pending" | "approved" | "rejected"
+      pricing_approval_status: "auto_approved" | "pending_review" | "approved" | "rejected"
+      pricing_override_status: "pending" | "approved" | "rejected"
       txn_type: "hold" | "release" | "refund" | "top_up"
+      user_role: "client" | "hustler" | "admin"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -445,7 +681,6 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      user_role: ["client", "hustler", "admin"],  // ✅ was app_role
       dispute_status: [
         "open",
         "under_review",
@@ -463,7 +698,10 @@ export const Constants = {
         "cancelled",
       ],
       kyc_status: ["pending", "approved", "rejected"],
+      pricing_approval_status: ["auto_approved", "pending_review", "approved", "rejected"],
+      pricing_override_status: ["pending", "approved", "rejected"],
       txn_type: ["hold", "release", "refund", "top_up"],
+      user_role: ["client", "hustler", "admin"],
     },
   },
 } as const

@@ -17,10 +17,12 @@ import DashboardRedirect from "./pages/DashboardRedirect";
 import WalletPage from "./pages/users/WalletPage";
 import PostGigPage from "./pages/users/PostGigPage";
 import MyGigsPage from "./pages/users/MyGigsPage";
+import ClientDashboard from "./pages/users/clientDshboard";
 import GigDetailPage from "./pages/GigDetailPage";
 import MarketplacePage from "./pages/hustlers/MarketplacePage";
 import MyJobsPage from "./pages/hustlers/MyJobsPage";
 import EarningsPage from "./pages/hustlers/EarningsPage";
+import HustlerDashboard from "./pages/hustlers/hustlerDashboard";
 import AdminDashboardPage from "./pages/admin/AdminDashboardPage";
 import AdminKYCPage from "./pages/admin/AdminKYCPage";
 import AdminGigsPage from "./pages/admin/AdminGigsPage";
@@ -54,6 +56,8 @@ function App() {
             <Route path="/kyc" element={<KYCPage />} />
             <Route path="/kyc-pending" element={<KYCPendingPage />} />
             <Route path="/dashboard" element={<ProtectedRoute><DashboardRedirect /></ProtectedRoute>} />
+            <Route path="/client" element={<ProtectedRoute requireRole="client"><ClientDashboard /></ProtectedRoute>} />
+            <Route path="/hustler" element={<ProtectedRoute requireRole="hustler"><HustlerDashboard /></ProtectedRoute>} />
             <Route path="/wallet" element={<ProtectedRoute><WalletPage /></ProtectedRoute>} />
             <Route path="/post-gig" element={<ProtectedRoute><PostGigPage /></ProtectedRoute>} />
             <Route path="/my-gigs" element={<ProtectedRoute><MyGigsPage /></ProtectedRoute>} />
