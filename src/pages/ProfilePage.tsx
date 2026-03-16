@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useAuth } from '@/lib/auth-context';
 import { supabase } from '@/integrations/supabase/client';
 import { AppLayout } from '@/components/AppLayout';
@@ -6,15 +6,14 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Separator } from '@/components/ui/separator';
 import { Progress } from '@/components/ui/progress';
-import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
 import {
   Save, Lock, ShieldCheck, TrendingUp, AlertTriangle,
   CheckCircle2, Activity, Calendar, Wallet, Eye, EyeOff,
-  User, BadgeCheck, Clock,
+  User, BadgeCheck, Clock, Camera, Loader2,
 } from 'lucide-react';
 import type { Tables } from '@/integrations/supabase/types';
 
@@ -30,32 +29,16 @@ function getInitials(name?: string | null, email?: string | null): string {
 const zar = (n: number) =>
   new Intl.NumberFormat('en-ZA', { style: 'currency', currency: 'ZAR' }).format(n);
 
+const MAX_AVATAR_BYTES = 5 * 1024 * 1024; // 5 MB — matches bucket limit
+
 const KYC_CONFIG: Record<string, { label: string; className: string; icon: React.ReactNode }> = {
-  approved: {
-    label: 'Verified',
-    className: 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20',
-    icon: <BadgeCheck className="h-3 w-3" />,
-  },
-  pending: {
-    label: 'KYC Pending',
-    className: 'bg-amber-500/10 text-amber-500 border-amber-500/20',
-    icon: <Clock className="h-3 w-3" />,
-  },
-  rejected: {
-    label: 'KYC Rejected',
-    className: 'bg-red-500/10 text-red-500 border-red-500/20',
-    icon: <AlertTriangle className="h-3 w-3" />,
-  },
+  approved: { label: 'Verified',     className: 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20', icon: <BadgeCheck className="h-3 w-3" /> },
+  pending:  { label: 'KYC Pending',  className: 'bg-amber-500/10  text-amber-500  border-amber-500/20',  icon: <Clock       className="h-3 w-3" /> },
+  rejected: { label: 'KYC Rejected', className: 'bg-red-500/10    text-red-500    border-red-500/20',    icon: <AlertTriangle className="h-3 w-3" /> },
 };
 
-// ─── Stats ────────────────────────────────────────────────────────────────────
-
 interface Stats {
-  total: number;
-  completed: number;
-  disputed: number;
-  active: number;
-  totalValue: number;
+  total: number; completed: number; disputed: number; active: number; totalValue: number;
 }
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
@@ -63,14 +46,18 @@ interface Stats {
 export default function ProfilePage() {
   const { user, profile, refreshProfile } = useAuth();
 
-  const [displayName, setDisplayName]       = useState('');
-  const [newPassword, setNewPassword]       = useState('');
+  const [displayName,     setDisplayName]     = useState('');
+  const [newPassword,     setNewPassword]     = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  const [showNewPw, setShowNewPw]           = useState(false);
-  const [showConfirmPw, setShowConfirmPw]   = useState(false);
-  const [saving, setSaving]                 = useState(false);
-  const [stats, setStats]                   = useState<Stats>({ total: 0, completed: 0, disputed: 0, active: 0, totalValue: 0 });
-  const [loadingStats, setLoadingStats]     = useState(true);
+  const [showNewPw,       setShowNewPw]       = useState(false);
+  const [showConfirmPw,   setShowConfirmPw]   = useState(false);
+  const [saving,          setSaving]          = useState(false);
+  const [uploadingAvatar, setUploadingAvatar] = useState(false);
+  const [avatarPreview,   setAvatarPreview]   = useState<string | null>(null);
+  const [stats,           setStats]           = useState<Stats>({ total: 0, completed: 0, disputed: 0, active: 0, totalValue: 0 });
+  const [loadingStats,    setLoadingStats]    = useState(true);
+
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (profile) {
@@ -79,75 +66,102 @@ export default function ProfilePage() {
     }
   }, [profile]);
 
-  // ── Fetch stats using correct schema columns ───────────────────────────────
+  // ── Stats ──────────────────────────────────────────────────────────────────
   const fetchStats = async () => {
     if (!profile) return;
     setLoadingStats(true);
     try {
-      const isHustler = profile.role === 'hustler';
-
       const { data, error } = await supabase
         .from('gigs')
         .select('status, budget')
-        .eq(isHustler ? 'hustler_id' : 'client_id', profile.id);
-
+        .eq(profile.role === 'hustler' ? 'hustler_id' : 'client_id', profile.id);
       if (error) throw error;
-
       const gigs: Pick<Gig, 'status' | 'budget'>[] = data ?? [];
-      const completed = gigs.filter(g => g.status === 'completed');
-      const disputed  = gigs.filter(g => g.status === 'disputed');
-      const active    = gigs.filter(g => ['open', 'accepted', 'in_progress', 'pending_confirmation'].includes(g.status));
-
       setStats({
         total:      gigs.length,
-        completed:  completed.length,
-        disputed:   disputed.length,
-        active:     active.length,
-        totalValue: gigs.reduce((sum, g) => sum + (Number(g.budget) || 0), 0),
+        completed:  gigs.filter(g => g.status === 'completed').length,
+        disputed:   gigs.filter(g => g.status === 'disputed').length,
+        active:     gigs.filter(g => ['open', 'accepted', 'in_progress', 'pending_confirmation'].includes(g.status)).length,
+        totalValue: gigs.reduce((s, g) => s + (Number(g.budget) || 0), 0),
       });
-    } catch (err) {
-      console.error('Error fetching stats:', err);
-      toast.error('Could not load stats.');
+    } catch { toast.error('Could not load stats.'); }
+    finally  { setLoadingStats(false); }
+  };
+
+  // ── Avatar upload ──────────────────────────────────────────────────────────
+  const handleAvatarSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (file.size > MAX_AVATAR_BYTES) {
+      toast.error('Image must be under 5 MB.');
+      e.target.value = '';
+      return;
+    }
+    // Show local preview immediately
+    const reader = new FileReader();
+    reader.onload = ev => setAvatarPreview(ev.target?.result as string);
+    reader.readAsDataURL(file);
+    // Upload straight away
+    uploadAvatar(file);
+  };
+
+  const uploadAvatar = async (file: File) => {
+    if (!user) return;
+    setUploadingAvatar(true);
+    try {
+      const ext      = file.name.split('.').pop();
+      const filePath = `${user.id}.${ext}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from('avatars')
+        .upload(filePath, file, { upsert: true, contentType: file.type });
+
+      if (uploadError) throw uploadError;
+
+      const { data: urlData } = supabase.storage.from('avatars').getPublicUrl(filePath);
+      // Bust the CDN cache by appending a timestamp
+      const avatarUrl = `${urlData.publicUrl}?t=${Date.now()}`;
+
+      const { error: updateError } = await supabase
+        .from('profiles')
+        .update({ avatar_url: avatarUrl })
+        .eq('id', user.id);
+
+      if (updateError) throw updateError;
+
+      await refreshProfile();
+      toast.success('Profile picture updated.');
+    } catch (err: any) {
+      toast.error(err.message ?? 'Avatar upload failed.');
+      setAvatarPreview(null); // revert preview on failure
     } finally {
-      setLoadingStats(false);
+      setUploadingAvatar(false);
+      if (fileInputRef.current) fileInputRef.current.value = '';
     }
   };
 
-  // ── Save profile + optional password ──────────────────────────────────────
+  // ── Profile + password save ────────────────────────────────────────────────
   const handleSave = async () => {
     if (!user || !profile) return;
-
-    if (newPassword && newPassword !== confirmPassword) {
-      toast.error('Passwords do not match.');
-      return;
-    }
-    if (newPassword && newPassword.length < 6) {
-      toast.error('Password must be at least 6 characters.');
-      return;
-    }
+    if (newPassword && newPassword !== confirmPassword) { toast.error('Passwords do not match.');           return; }
+    if (newPassword && newPassword.length < 6)          { toast.error('Password must be at least 6 characters.'); return; }
 
     setSaving(true);
     try {
       const { error: profileError } = await supabase
-        .from('profiles')
-        .update({ full_name: displayName.trim() })
-        .eq('id', profile.id);
+        .from('profiles').update({ full_name: displayName.trim() }).eq('id', profile.id);
       if (profileError) throw profileError;
 
       if (newPassword) {
         const { error: pwError } = await supabase.auth.updateUser({ password: newPassword });
         if (pwError) throw pwError;
-        setNewPassword('');
-        setConfirmPassword('');
+        setNewPassword(''); setConfirmPassword('');
       }
-
       await refreshProfile();
       toast.success('Profile updated successfully.');
     } catch (err: any) {
       toast.error(err.message ?? 'Something went wrong.');
-    } finally {
-      setSaving(false);
-    }
+    } finally { setSaving(false); }
   };
 
   // ── Derived ───────────────────────────────────────────────────────────────
@@ -155,49 +169,75 @@ export default function ProfilePage() {
   const memberSince    = profile?.created_at
     ? new Date(profile.created_at).toLocaleDateString('en-ZA', { year: 'numeric', month: 'long', day: 'numeric' })
     : '—';
-  const kycCfg  = KYC_CONFIG[profile?.kyc_status ?? 'pending'];
-  const roleLabel = profile?.role
-    ? profile.role.charAt(0).toUpperCase() + profile.role.slice(1)
-    : '—';
+  const kycCfg    = KYC_CONFIG[profile?.kyc_status ?? 'pending'];
+  const roleLabel = profile?.role ? profile.role.charAt(0).toUpperCase() + profile.role.slice(1) : '—';
+
+  // Prefer local preview → DB avatar_url → fallback to initials
+  const avatarSrc = avatarPreview ?? profile?.avatar_url ?? undefined;
 
   const statCards = [
-    { label: 'Total Gigs',  value: stats.total,     icon: Activity,      color: 'text-primary'     },
-    { label: 'Completed',   value: stats.completed,  icon: CheckCircle2,  color: 'text-emerald-500' },
-    { label: 'Disputed',    value: stats.disputed,   icon: AlertTriangle, color: 'text-destructive' },
-    { label: 'Active',      value: stats.active,     icon: TrendingUp,    color: 'text-sky-500'     },
+    { label: 'Total Gigs', value: stats.total,    icon: Activity,      color: 'text-primary'     },
+    { label: 'Completed',  value: stats.completed, icon: CheckCircle2,  color: 'text-emerald-500' },
+    { label: 'Disputed',   value: stats.disputed,  icon: AlertTriangle, color: 'text-destructive' },
+    { label: 'Active',     value: stats.active,    icon: TrendingUp,    color: 'text-sky-500'     },
   ];
 
   return (
     <AppLayout>
       <div className="max-w-4xl mx-auto space-y-6 pb-10">
 
-        {/* ── Hero card ────────────────────────────────────────────────────── */}
+        {/* ── Hero card ──────────────────────────────────────────────────── */}
         <Card className="overflow-hidden">
-          <div
-            className="h-28"
-            style={{
-              background:
-                'linear-gradient(135deg, hsl(var(--primary) / 0.9) 0%, hsl(var(--primary) / 0.4) 45%, hsl(var(--accent) / 0.4) 75%, hsl(var(--accent) / 0.1) 100%)',
-            }}
-          />
+          <div className="h-28" style={{ background: 'linear-gradient(135deg, hsl(var(--primary) / 0.9) 0%, hsl(var(--primary) / 0.4) 45%, hsl(var(--accent) / 0.4) 75%, hsl(var(--accent) / 0.1) 100%)' }} />
           <div className="px-6 pb-6 -mt-12">
             <div className="flex flex-col sm:flex-row items-start sm:items-end gap-4">
-              <Avatar className="h-24 w-24 border-4 border-card shadow-xl">
-                <AvatarFallback className="bg-primary text-primary-foreground text-2xl font-bold">
-                  {getInitials(profile?.full_name, user?.email)}
-                </AvatarFallback>
-              </Avatar>
+
+              {/* Avatar with upload overlay */}
+              <div className="relative group shrink-0">
+                <Avatar className="h-24 w-24 border-4 border-card shadow-xl">
+                  <AvatarImage src={avatarSrc} alt={profile?.full_name ?? 'Avatar'} />
+                  <AvatarFallback className="bg-primary text-primary-foreground text-2xl font-bold">
+                    {getInitials(profile?.full_name, user?.email)}
+                  </AvatarFallback>
+                </Avatar>
+
+                {/* Camera overlay button */}
+                <button
+                  type="button"
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={uploadingAvatar}
+                  className="
+                    absolute inset-0 flex items-center justify-center rounded-full
+                    bg-black/0 group-hover:bg-black/50
+                    opacity-0 group-hover:opacity-100
+                    transition-all duration-200
+                    cursor-pointer disabled:cursor-not-allowed
+                  "
+                  title="Change profile picture"
+                >
+                  {uploadingAvatar
+                    ? <Loader2 className="h-6 w-6 text-white animate-spin" />
+                    : <Camera  className="h-6 w-6 text-white" />}
+                </button>
+
+                {/* Hidden file input */}
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={handleAvatarSelect}
+                />
+              </div>
 
               <div className="flex-1 min-w-0 pt-2">
                 <div className="flex flex-wrap items-center gap-2 mb-0.5">
                   <h1 className="text-2xl font-bold truncate">{profile?.full_name || 'User'}</h1>
-                  {/* KYC badge */}
                   {kycCfg && (
                     <span className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[11px] font-semibold border ${kycCfg.className}`}>
                       {kycCfg.icon}{kycCfg.label}
                     </span>
                   )}
-                  {/* Role badge */}
                   <span className="inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[11px] font-semibold bg-primary/10 text-primary border border-primary/20">
                     <User className="h-3 w-3" />{roleLabel}
                   </span>
@@ -208,16 +248,18 @@ export default function ProfilePage() {
                 </p>
               </div>
 
-              {/* Wallet balance */}
               <div className="sm:text-right shrink-0">
                 <p className="text-xs text-muted-foreground mb-0.5 flex items-center gap-1 sm:justify-end">
                   <Wallet className="h-3 w-3" /> Wallet Balance
                 </p>
-                <p className="text-2xl font-bold text-foreground">
-                  {zar(Number(profile?.balance ?? 0))}
-                </p>
+                <p className="text-2xl font-bold text-foreground">{zar(Number(profile?.balance ?? 0))}</p>
               </div>
             </div>
+
+            {/* Upload hint */}
+            <p className="text-xs text-muted-foreground mt-3 ml-0.5">
+              Hover over your avatar to change it · Max 5 MB · JPG, PNG, WebP
+            </p>
           </div>
         </Card>
 
@@ -227,14 +269,12 @@ export default function ProfilePage() {
             <Card key={label}>
               <CardContent className="p-4">
                 <div className="flex items-start justify-between mb-3">
-                  <div className={`p-2 rounded-lg bg-muted`}>
+                  <div className="p-2 rounded-lg bg-muted">
                     <Icon className={`h-4 w-4 ${color}`} />
                   </div>
-                  {loadingStats ? (
-                    <div className="h-7 w-10 rounded bg-muted animate-pulse" />
-                  ) : (
-                    <span className="text-2xl font-bold">{value}</span>
-                  )}
+                  {loadingStats
+                    ? <div className="h-7 w-10 rounded bg-muted animate-pulse" />
+                    : <span className="text-2xl font-bold">{value}</span>}
                 </div>
                 <p className="text-xs text-muted-foreground">{label}</p>
               </CardContent>
@@ -251,29 +291,24 @@ export default function ProfilePage() {
                 <span className="text-sm font-bold">{completionRate}%</span>
               </div>
               <Progress value={completionRate} className="h-2" />
-              <p className="text-xs text-muted-foreground">
-                {stats.completed} of {stats.total} gigs completed
-              </p>
+              <p className="text-xs text-muted-foreground">{stats.completed} of {stats.total} gigs completed</p>
             </CardContent>
           </Card>
-
           <Card>
             <CardContent className="p-4 space-y-2">
               <div className="flex items-center justify-between">
                 <span className="text-sm font-medium">Total Gig Value</span>
                 <TrendingUp className="h-4 w-4 text-emerald-500" />
               </div>
-              {loadingStats ? (
-                <div className="h-8 w-32 rounded bg-muted animate-pulse" />
-              ) : (
-                <p className="text-2xl font-bold">{zar(stats.totalValue)}</p>
-              )}
+              {loadingStats
+                ? <div className="h-8 w-32 rounded bg-muted animate-pulse" />
+                : <p className="text-2xl font-bold">{zar(stats.totalValue)}</p>}
               <p className="text-xs text-muted-foreground">Across all gigs</p>
             </CardContent>
           </Card>
         </div>
 
-        {/* ── Account settings ─────────────────────────────────────────────── */}
+        {/* ── Account settings ──────────────────────────────────────────────── */}
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-lg">
@@ -284,15 +319,50 @@ export default function ProfilePage() {
           </CardHeader>
           <CardContent className="space-y-6">
 
+            {/* Avatar upload row */}
+            <div className="flex items-center gap-4">
+              <div className="relative group shrink-0">
+                <Avatar className="h-16 w-16 border-2 border-border">
+                  <AvatarImage src={avatarSrc} alt="Avatar" />
+                  <AvatarFallback className="bg-primary text-primary-foreground font-bold">
+                    {getInitials(profile?.full_name, user?.email)}
+                  </AvatarFallback>
+                </Avatar>
+                <button
+                  type="button"
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={uploadingAvatar}
+                  className="absolute inset-0 flex items-center justify-center rounded-full bg-black/0 group-hover:bg-black/50 opacity-0 group-hover:opacity-100 transition-all duration-200 cursor-pointer disabled:cursor-not-allowed"
+                >
+                  {uploadingAvatar
+                    ? <Loader2 className="h-4 w-4 text-white animate-spin" />
+                    : <Camera  className="h-4 w-4 text-white" />}
+                </button>
+              </div>
+              <div>
+                <p className="text-sm font-medium text-foreground">Profile Picture</p>
+                <p className="text-xs text-muted-foreground mb-2">JPG, PNG or WebP · Max 5 MB</p>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  className="rounded-xl h-8 text-xs"
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={uploadingAvatar}
+                >
+                  {uploadingAvatar
+                    ? <><Loader2 className="h-3.5 w-3.5 mr-1.5 animate-spin" /> Uploading…</>
+                    : <><Camera  className="h-3.5 w-3.5 mr-1.5" /> Change Photo</>}
+                </Button>
+              </div>
+            </div>
+
+            <Separator />
+
             {/* Display name */}
             <div className="space-y-2">
               <Label htmlFor="displayName">Display Name</Label>
-              <Input
-                id="displayName"
-                value={displayName}
-                onChange={e => setDisplayName(e.target.value)}
-                placeholder="Your display name"
-              />
+              <Input id="displayName" value={displayName} onChange={e => setDisplayName(e.target.value)} placeholder="Your display name" />
             </div>
 
             {/* Read-only info */}
@@ -318,19 +388,8 @@ export default function ProfilePage() {
                 <div className="space-y-2">
                   <Label htmlFor="newPassword">New Password</Label>
                   <div className="relative">
-                    <Input
-                      id="newPassword"
-                      type={showNewPw ? 'text' : 'password'}
-                      value={newPassword}
-                      onChange={e => setNewPassword(e.target.value)}
-                      placeholder="Min 6 characters"
-                      className="pr-10"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setShowNewPw(v => !v)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-                    >
+                    <Input id="newPassword" type={showNewPw ? 'text' : 'password'} value={newPassword} onChange={e => setNewPassword(e.target.value)} placeholder="Min 6 characters" className="pr-10" />
+                    <button type="button" onClick={() => setShowNewPw(v => !v)} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">
                       {showNewPw ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                     </button>
                   </div>
@@ -338,26 +397,13 @@ export default function ProfilePage() {
                 <div className="space-y-2">
                   <Label htmlFor="confirmPassword">Confirm Password</Label>
                   <div className="relative">
-                    <Input
-                      id="confirmPassword"
-                      type={showConfirmPw ? 'text' : 'password'}
-                      value={confirmPassword}
-                      onChange={e => setConfirmPassword(e.target.value)}
-                      placeholder="Re-enter password"
-                      className="pr-10"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setShowConfirmPw(v => !v)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-                    >
+                    <Input id="confirmPassword" type={showConfirmPw ? 'text' : 'password'} value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)} placeholder="Re-enter password" className="pr-10" />
+                    <button type="button" onClick={() => setShowConfirmPw(v => !v)} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">
                       {showConfirmPw ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                     </button>
                   </div>
                 </div>
               </div>
-
-              {/* Live password mismatch hint */}
               {newPassword && confirmPassword && newPassword !== confirmPassword && (
                 <p className="text-xs text-destructive flex items-center gap-1">
                   <AlertTriangle className="h-3 w-3" /> Passwords don't match
@@ -366,11 +412,7 @@ export default function ProfilePage() {
             </div>
 
             <div className="flex justify-end">
-              <Button
-                onClick={handleSave}
-                disabled={saving || (!!newPassword && newPassword !== confirmPassword)}
-                className="w-full sm:w-auto"
-              >
+              <Button onClick={handleSave} disabled={saving || (!!newPassword && newPassword !== confirmPassword)} className="w-full sm:w-auto">
                 <Save className="h-4 w-4 mr-2" />
                 {saving ? 'Saving…' : 'Save Changes'}
               </Button>
