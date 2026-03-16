@@ -1,10 +1,3 @@
-const handleSignup = async (e: React.FormEvent) => {
-  e.preventDefault();
-
-  // TEMP: paste this in and check browser console
-  console.log('supabase url:', import.meta.env.VITE_SUPABASE_URL)
-  console.log('supabase key:', import.meta.env.VITE_SUPABASE_ANON_KEY)}
-
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";

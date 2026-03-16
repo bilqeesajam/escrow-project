@@ -34,7 +34,7 @@ const adminLinks = [
   { title: "Disputes",          url: "/admin/disputes",          icon: AlertTriangle   },
   { title: "Users",             url: "/admin/users",             icon: Users           },
   { title: "Pricing",           url: "/admin/pricing",           icon: DollarSign      },
-  { title: "Pricing Overrides", url: "/admin/pricing-overrides", icon: DollarSign      },
+  // { title: "Pricing Overrides", url: "/admin/pricing-overrides", icon: DollarSign      },
 ];
 
 export function SidebarCollapseButton() {
