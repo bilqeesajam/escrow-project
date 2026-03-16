@@ -27,6 +27,7 @@ import {
 } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import { Loader2, ShoppingBag, Zap, MailCheck } from "lucide-react";
+import TermsAgreementFlow from "@/components/TermsAgreementFlow";
 
 export default function SignupPage() {
   const [email, setEmail] = useState("");
@@ -36,6 +37,7 @@ export default function SignupPage() {
   const [loading, setLoading] = useState(false);
   const [showVerificationModal, setShowVerificationModal] = useState(false);
   const [resending, setResending] = useState(false);
+  const [showTerms, setShowTerms] = useState(false);
 
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -53,13 +55,18 @@ export default function SignupPage() {
       return;
     }
 
+    // Show terms instead of immediately signing up
+    setShowTerms(true);
+  };
+
+  const handleAcceptTerms = async () => {
     setLoading(true);
 
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
       options: {
-        emailRedirectTo: `${window.location.origin}/login`,
+        emailRedirectTo: `${window.location.origin}/kyc`,
         data: {
           full_name: fullName,
           role: role,
@@ -70,6 +77,7 @@ export default function SignupPage() {
     if (error) {
       toast.error(error.message);
       setLoading(false);
+      setShowTerms(false);
       return;
     }
 
@@ -91,7 +99,13 @@ export default function SignupPage() {
     }
 
     setLoading(false);
+    setShowTerms(false);
     setShowVerificationModal(true);
+  };
+
+  const handleRejectTerms = () => {
+    setShowTerms(false);
+    toast.info("Please review and accept the terms to continue");
   };
 
   const handleResendEmail = async () => {
@@ -101,7 +115,7 @@ export default function SignupPage() {
       type: "signup",
       email,
       options: {
-        emailRedirectTo: `${window.location.origin}/login`,
+        emailRedirectTo: `${window.location.origin}/kyc`,
       },
     });
     setResending(false);
@@ -114,6 +128,16 @@ export default function SignupPage() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-background p-4">
+      {/* Terms Agreement Modal */}
+      {showTerms && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4 animate-in fade-in duration-300">
+          <TermsAgreementFlow
+            onAccept={handleAcceptTerms}
+            onReject={handleRejectTerms}
+          />
+        </div>
+      )}
+
       {/* Verification waiting modal */}
       <Dialog open={showVerificationModal}>
         <DialogContent
