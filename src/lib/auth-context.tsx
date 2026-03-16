@@ -8,13 +8,13 @@ type Profile = Database['public']['Tables']['profiles']['Row']
 interface AuthContextType {
   user: User | null
   session: Session | null
-  profile: Profile | null        // ← added
+  profile: Profile | null
   loading: boolean
   signUp: (email: string, password: string) => Promise<{ error: Error | null }>
   signIn: (email: string, password: string) => Promise<{ error: Error | null }>
   signOut: () => Promise<void>
   verifyEmail: (token: string, email: string) => Promise<{ error: Error | null }>
-  refreshProfile: () => Promise<void>  // ← added
+  refreshProfile: () => Promise<void>
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
@@ -25,42 +25,58 @@ export const useAuth = () => {
   return context
 }
 
+// Standalone helper so both the effect and refreshProfile can call it
+async function fetchProfile(userId: string): Promise<Profile | null> {
+  const { data } = await supabase
+    .from('profiles')
+    .select('*')
+    .eq('id', userId)
+    .single()
+  return data ?? null
+}
+
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null)
   const [session, setSession] = useState<Session | null>(null)
   const [profile, setProfile] = useState<Profile | null>(null)
   const [loading, setLoading] = useState(true)
 
-  // Fetch profile whenever user changes
   useEffect(() => {
-    if (!user) {
-      setProfile(null)
-      return
-    }
-    supabase
-      .from('profiles')
-      .select('*')
-      .eq('id', user.id)
-      .single()
-      .then(({ data }) => setProfile(data ?? null))
-  }, [user])
+    let mounted = true
 
-  useEffect(() => {
+    // On every auth state change (including the initial getSession call),
+    // fetch the profile BEFORE clearing the loading flag. This ensures
+    // ProtectedRoute never sees loading=false with profile=null.
+    const handleSession = async (newSession: Session | null) => {
+      setSession(newSession)
+      setUser(newSession?.user ?? null)
+
+      if (newSession?.user) {
+        const p = await fetchProfile(newSession.user.id)
+        if (mounted) setProfile(p)
+      } else {
+        if (mounted) setProfile(null)
+      }
+
+      if (mounted) setLoading(false)
+    }
+
+    // Initial session check
     supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session)
-      setUser(session?.user ?? null)
-      setLoading(false)
+      if (mounted) handleSession(session)
     })
 
+    // Subsequent auth state changes (sign-in, sign-out, token refresh)
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (_event, session) => {
-        setSession(session)
-        setUser(session?.user ?? null)
-        setLoading(false)
+        if (mounted) handleSession(session)
       }
     )
 
-    return () => subscription.unsubscribe()
+    return () => {
+      mounted = false
+      subscription.unsubscribe()
+    }
   }, [])
 
   const signUp = async (email: string, password: string): Promise<{ error: Error | null }> => {
@@ -104,16 +120,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const refreshProfile = async () => {
     if (!user) return
-    const { data } = await supabase
-      .from('profiles')
-      .select('*')
-      .eq('id', user.id)
-      .single()
-    setProfile(data ?? null)
+    const p = await fetchProfile(user.id)
+    setProfile(p)
   }
 
   return (
-    <AuthContext.Provider value={{ user, session, profile, loading, signUp, signIn, signOut, verifyEmail, refreshProfile }}>
+    <AuthContext.Provider value={{
+      user, session, profile, loading,
+      signUp, signIn, signOut, verifyEmail, refreshProfile,
+    }}>
       {children}
     </AuthContext.Provider>
   )
