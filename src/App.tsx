@@ -3,7 +3,7 @@ import { BrowserRouter, Route, Routes } from "react-router-dom";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import { AuthProvider } from "@/lib/auth-context";
+import { AuthProvider, useProtectedNavigation } from "@/lib/auth-context";
 import { ThemeProvider } from "@/lib/theme-context";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 
@@ -39,6 +39,171 @@ import PrivacyPolicyPage from "./pages/PrivacyPolicyPage";
 
 const queryClient = new QueryClient();
 
+// Inner component to use the protected navigation hook
+function AppContent() {
+  useProtectedNavigation();
+
+  return (
+    <Routes>
+      <Route path="/" element={<Index />} />
+      <Route path="/login" element={<LoginPage />} />
+      <Route path="/signup" element={<SignupPage />} />
+      <Route path="/choose-role" element={<ChooseRolePage />} />
+      <Route path="/kyc" element={<KYCPage />} />
+      <Route path="/kyc-pending" element={<KYCPendingPage />} />
+      <Route
+        path="/dashboard"
+        element={
+          <ProtectedRoute>
+            <DashboardRedirect />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/client"
+        element={
+          <ProtectedRoute requireRole="client">
+            <ClientDashboard />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/hustler"
+        element={
+          <ProtectedRoute requireRole="hustler">
+            <HustlerDashboard />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/wallet"
+        element={
+          <ProtectedRoute>
+            <WalletPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/post-gig"
+        element={
+          <ProtectedRoute>
+            <PostGigPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/my-gigs"
+        element={
+          <ProtectedRoute>
+            <MyGigsPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/gig/:id"
+        element={
+          <ProtectedRoute>
+            <GigDetailPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/marketplace"
+        element={
+          <ProtectedRoute>
+            <MarketplacePage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/my-jobs"
+        element={
+          <ProtectedRoute>
+            <MyJobsPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/earnings"
+        element={
+          <ProtectedRoute>
+            <EarningsPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/profile"
+        element={
+          <ProtectedRoute>
+            <ProfilePage />
+          </ProtectedRoute>
+        }
+      />
+      <Route path="/pricing" element={<PricingPage />} />
+      <Route path="/contact" element={<ContactPage />} />
+      <Route path="/terms" element={<TermsOfServicePage />} />
+      <Route path="/privacy" element={<PrivacyPolicyPage />} />
+      <Route
+        path="/admin"
+        element={
+          <ProtectedRoute requireRole="admin">
+            <AdminDashboardPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/admin/kyc"
+        element={
+          <ProtectedRoute requireRole="admin">
+            <AdminKYCPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/admin/gigs"
+        element={
+          <ProtectedRoute requireRole="admin">
+            <AdminGigsPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/admin/disputes"
+        element={
+          <ProtectedRoute requireRole="admin">
+            <AdminDisputesPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/admin/users"
+        element={
+          <ProtectedRoute requireRole="admin">
+            <AdminUsersPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/admin/pricing"
+        element={
+          <ProtectedRoute requireRole="admin">
+            <AdminPricingPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/admin/pricing-overrides"
+        element={
+          <ProtectedRoute requireRole="admin">
+            <AdminPricingOverridesPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route path="*" element={<NotFound />} />
+    </Routes>
+  );
+}
+
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
@@ -48,43 +213,13 @@ function App() {
           <Sonner />
           <BrowserRouter>
             <AuthProvider>
-          <Routes>
-            <Route path="/" element={<Index />} />
-            <Route path="/login" element={<LoginPage />} />
-            <Route path="/signup" element={<SignupPage />} />
-            {/* <Route path="/choose-role" element={<ChooseRolePage />} /> */}
-            <Route path="/kyc" element={<KYCPage />} />
-            <Route path="/kyc-pending" element={<KYCPendingPage />} />
-            <Route path="/dashboard" element={<ProtectedRoute><DashboardRedirect /></ProtectedRoute>} />
-            <Route path="/client" element={<ProtectedRoute requireRole="client"><ClientDashboard /></ProtectedRoute>} />
-            <Route path="/hustler" element={<ProtectedRoute requireRole="hustler"><HustlerDashboard /></ProtectedRoute>} />
-            <Route path="/wallet" element={<ProtectedRoute><WalletPage /></ProtectedRoute>} />
-            <Route path="/post-gig" element={<ProtectedRoute><PostGigPage /></ProtectedRoute>} />
-            <Route path="/my-gigs" element={<ProtectedRoute><MyGigsPage /></ProtectedRoute>} />
-            <Route path="/gig/:id" element={<ProtectedRoute><GigDetailPage /></ProtectedRoute>} />
-            <Route path="/marketplace" element={<ProtectedRoute><MarketplacePage /></ProtectedRoute>} />
-            <Route path="/my-jobs" element={<ProtectedRoute><MyJobsPage /></ProtectedRoute>} />
-            <Route path="/earnings" element={<ProtectedRoute><EarningsPage /></ProtectedRoute>} />
-            <Route path="/profile" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
-            <Route path="/pricing" element={<PricingPage />} />
-            <Route path="/contact" element={<ContactPage />} />
-            <Route path="/terms" element={<TermsOfServicePage />} />
-            <Route path="/privacy" element={<PrivacyPolicyPage />} />
-            <Route path="/admin" element={<ProtectedRoute requireRole="admin"><AdminDashboardPage /></ProtectedRoute>} />
-            <Route path="/admin/kyc" element={<ProtectedRoute requireRole="admin"><AdminKYCPage /></ProtectedRoute>} />
-            <Route path="/admin/gigs" element={<ProtectedRoute requireRole="admin"><AdminGigsPage /></ProtectedRoute>} />
-            <Route path="/admin/disputes" element={<ProtectedRoute requireRole="admin"><AdminDisputesPage /></ProtectedRoute>} />
-            <Route path="/admin/users" element={<ProtectedRoute requireRole="admin"><AdminUsersPage /></ProtectedRoute>} />
-            <Route path="/admin/pricing" element={<ProtectedRoute requireRole="admin"><AdminPricingPage /></ProtectedRoute>} />
-            {/* <Route path="/admin/pricing-overrides" element={<ProtectedRoute requireRole="admin"><AdminPricingOverridesPage /></ProtectedRoute>} /> */}
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </AuthProvider>
-      </BrowserRouter>
-    </TooltipProvider>
-  </ThemeProvider>
-  </QueryClientProvider>
-);
+              <AppContent />
+            </AuthProvider>
+          </BrowserRouter>
+        </TooltipProvider>
+      </ThemeProvider>
+    </QueryClientProvider>
+  );
 }
 
 export default App;
