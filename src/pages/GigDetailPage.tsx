@@ -1,23 +1,23 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { supabase } from "@/integrations/supabase/client";
-import { useAuth } from "@/lib/auth-context";
-import { AppLayout } from "@/components/AppLayout";
-import { PINInput } from "@/components/PINInput";
-import { ConfirmModal } from "@/components/ConfirmModal";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { supabase } from "../integrations/supabase/client";
+import { useAuth } from "../lib/auth-context";
+import { AppLayout } from "../components/AppLayout";
+import { PINInput } from "../components/PINInput";
+import { ConfirmModal } from "../components/ConfirmModal";
+import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card";
+import { Button } from "../components/ui/button";
+import { Textarea } from "../components/ui/textarea";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "../components/ui/dialog";
 import { toast } from "sonner";
 import {
   Loader2, MapPin, Clock, AlertTriangle,
   FileDown, Mail,
 } from "lucide-react";
-import type { Tables } from "@/integrations/supabase/types";
+import type { Tables } from "../integrations/supabase/types";
 import { formatDistanceToNow } from "date-fns";
-import { Timeline, TimelineEvent } from "@/components/Timeline";
-import { generateReceipt } from "@/lib/generateReceipt";
+import { Timeline, TimelineEvent } from "../components/Timeline";
+import { generateReceipt } from "../lib/generateReceipt";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 

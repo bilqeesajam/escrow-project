@@ -1,8 +1,8 @@
 import { MapPin, DollarSign, Clock } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card";
 import { StatusBadge } from "./StatusBadge";
-import { Button } from "@/components/ui/button";
-import type { Tables } from "@/integrations/supabase/types";
+import { Button } from "../components/ui/button";
+import type { Tables } from "../integrations/supabase/types";
 import { formatDistanceToNow } from "date-fns";
 
 type Gig = Tables<"gigs">;

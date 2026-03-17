@@ -1,17 +1,17 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { supabase } from "@/integrations/supabase/client";
-import { useAuth } from "@/lib/auth-context";
-import { AppLayout } from "@/components/AppLayout";
-import { Button } from "@/components/ui/button";
+import { supabase } from "../../integrations/supabase/client";
+import { useAuth } from "../../lib/auth-context";
+import { AppLayout } from "../../components/AppLayout";
+import { Button } from "../../components/ui/button";
 import { toast } from "sonner";
 import {
   Briefcase, Loader2, Search, X, Plus, ChevronRight,
   PlayCircle, CheckCircle2, AlertTriangle, MapPin, Clock,
 } from "lucide-react";
-import type { Tables } from "@/integrations/supabase/types";
+import type { Tables } from "../../integrations/supabase/types";
 import { formatDistanceToNow } from "date-fns";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "../../components/ui/tabs";
 
 type Gig = Tables<"gigs">;
 

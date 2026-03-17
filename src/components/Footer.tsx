@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
 import { Shield } from "lucide-react";
-import { THEME } from "@/lib/theme";
+import { THEME } from "../lib/theme";
 
 export default function Footer() {
   return (

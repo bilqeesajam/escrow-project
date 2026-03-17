@@ -1,10 +1,10 @@
 import { ReactNode, useEffect, useRef, useState } from "react";
 import { useLocation } from "react-router-dom";
-import { SidebarProvider } from "@/components/ui/sidebar";
+import { SidebarProvider } from "../components/ui/sidebar";
 import { AppSidebar } from "./AppSidebar";
 import { NotificationBell } from "./NotificationBell";
 import { ThemeToggle } from "./ThemeToggle";
-import { useAuth } from "@/lib/auth-context";
+import { useAuth } from "../lib/auth-context";
 
 function PageTransition({ children }: { children: ReactNode }) {
   const location = useLocation();

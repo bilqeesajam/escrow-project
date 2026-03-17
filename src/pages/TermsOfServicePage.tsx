@@ -1,4 +1,4 @@
-import PublicLayout from "@/components/PublicLayout";
+import PublicLayout from "../components/PublicLayout";
 import { Scale, Banknote, AlertTriangle, UserCheck, Database, ShieldCheck } from "lucide-react";
 
 const termsSections = [

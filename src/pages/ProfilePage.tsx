@@ -1,21 +1,21 @@
 import { useState, useEffect, useRef } from 'react';
-import { useAuth } from '@/lib/auth-context';
-import { supabase } from '@/integrations/supabase/client';
-import { AppLayout } from '@/components/AppLayout';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Button } from '@/components/ui/button';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Separator } from '@/components/ui/separator';
-import { Progress } from '@/components/ui/progress';
+import { useAuth } from '../lib/auth-context';
+import { supabase } from '../integrations/supabase/client';
+import { AppLayout } from '../components/AppLayout';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card';
+import { Input } from '../components/ui/input';
+import { Label } from '../components/ui/label';
+import { Button } from '../components/ui/button';
+import { Avatar, AvatarFallback, AvatarImage } from '../components/ui/avatar';
+import { Separator } from '../components/ui/separator';
+import { Progress } from '../components/ui/progress';
 import { toast } from 'sonner';
 import {
   Save, Lock, ShieldCheck, TrendingUp, AlertTriangle,
   CheckCircle2, Activity, Calendar, Wallet, Eye, EyeOff,
   User, BadgeCheck, Clock, Camera, Loader2,
 } from 'lucide-react';
-import type { Tables } from '@/integrations/supabase/types';
+import type { Tables } from '../integrations/supabase/types';
 
 type Gig = Tables<'gigs'>;
 

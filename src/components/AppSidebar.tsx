@@ -2,14 +2,14 @@ import {
   LayoutDashboard, Briefcase, Wallet, PlusCircle, ShoppingBag, DollarSign,
   Users, Shield, AlertTriangle, LogOut, User, PanelLeft,
 } from "lucide-react";
-import { NavLink } from "@/components/NavLink";
-import { useAuth } from "@/lib/auth-context";
+import { NavLink } from "../components/NavLink";
+import { useAuth } from "../lib/auth-context";
 import {
   Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent, SidebarGroupLabel,
   SidebarMenu, SidebarMenuButton, SidebarMenuItem, SidebarFooter, useSidebar,
-} from "@/components/ui/sidebar";
+} from "../components/ui/sidebar";
 import { Link } from "react-router-dom";
-import { Button } from "@/components/ui/button";
+import { Button } from "../components/ui/button";
 
 const clientLinks = [
   { title: "Dashboard", url: "/client",  icon: LayoutDashboard },
