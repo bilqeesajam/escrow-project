@@ -1,10 +1,10 @@
 import { Link } from "react-router-dom";
-import { Button } from "@/components/ui/button";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { Button } from "../components/ui/button";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "../components/ui/dropdown-menu";
 import { Shield, User, LogOut, Menu, X } from "lucide-react";
-import { useAuth } from "@/lib/auth-context";
+import { useAuth } from "../lib/auth-context";
 import { useState } from "react";
-import { THEME } from "@/lib/theme";
+import { THEME } from "../lib/theme";
 
 interface NavbarProps {
   showLandingNav?: boolean;

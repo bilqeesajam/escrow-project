@@ -1,13 +1,13 @@
 import { useState, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
-import { supabase } from "@/integrations/supabase/client";
-import { AppLayout } from "@/components/AppLayout";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
+import { supabase } from "../../integrations/supabase/client";
+import { AppLayout } from "../../components/AppLayout";
+import { Input } from "../../components/ui/input";
+import { Button } from "../../components/ui/button";
 import { Loader2, Search, X, FileDown, ChevronRight } from "lucide-react";
-import type { Tables } from "@/integrations/supabase/types";
+import type { Tables } from "../../integrations/supabase/types";
 import { formatDistanceToNow } from "date-fns";
-import { generateReceipt } from "@/lib/generateReceipt";
+import { generateReceipt } from "../../lib/generateReceipt";
 
 type Gig     = Tables<"gigs">;
 type Profile = Tables<"profiles">;

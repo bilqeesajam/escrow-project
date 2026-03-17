@@ -1,16 +1,16 @@
 import { Link } from "react-router-dom";
-import { Button } from "@/components/ui/button";
+import { Button } from "../components/ui/button";
 import {
   Accordion, AccordionContent,
   AccordionItem, AccordionTrigger,
-} from "@/components/ui/accordion";
+} from "../components/ui/accordion";
 import {
   Shield, ArrowRight, Lock, Zap, CheckCircle,
   Handshake, Truck, Search, Banknote, Moon, Sun, ChevronRight,
 } from "lucide-react";
-import { useAuth } from "@/lib/auth-context";
-import { useTheme } from "@/lib/theme-context";
-import { NavAvatar } from "@/components/NavAvatar";
+import { useAuth } from "../lib/auth-context";
+import { useTheme } from "../lib/theme-context";
+import { NavAvatar } from "../components/NavAvatar";
 import { useState, useMemo } from "react";
 
 function scrollTo(id: string) {

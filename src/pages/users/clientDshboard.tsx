@@ -1,16 +1,16 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { supabase } from "@/integrations/supabase/client";
-import { useAuth } from "@/lib/auth-context";
-import { AppLayout } from "@/components/AppLayout";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+import { supabase } from "../../integrations/supabase/client";
+import { useAuth } from "../../lib/auth-context";
+import { AppLayout } from "../../components/AppLayout";
+import { Card, CardContent, CardHeader, CardTitle } from "../../components/ui/card";
+import { Button } from "../../components/ui/button";
 import { toast } from "sonner";
 import {
   Loader2, Plus, ArrowRight, Wallet, Clock, CheckCircle2,
   AlertTriangle, ChevronRight, Banknote, ShieldCheck, FileClock,
 } from "lucide-react";
-import type { Tables } from "@/integrations/supabase/types";
+import type { Tables } from "../../integrations/supabase/types";
 import { formatDistanceToNow } from "date-fns";
 
 type Gig = Tables<"gigs">;

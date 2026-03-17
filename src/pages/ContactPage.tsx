@@ -1,9 +1,9 @@
 import { useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { Button } from "../components/ui/button";
+import { Input } from "../components/ui/input";
 import { toast } from "sonner";
 import { Mail, Phone, Clock, Send, MessageSquare } from "lucide-react";
-import PublicLayout from "@/components/PublicLayout";
+import PublicLayout from "../components/PublicLayout";
 
 export default function ContactPage() {
   const [formData, setFormData]     = useState({ name: "", phone: "", email: "", message: "" });

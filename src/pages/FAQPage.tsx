@@ -1,17 +1,17 @@
 import { useState, useMemo } from 'react';
 import { Link } from 'react-router-dom';
-import { useAuth } from '@/lib/auth-context';
-import { AppLayout } from '@/components/AppLayout';
+import { useAuth } from '../lib/auth-context';
+import { AppLayout } from '../components/AppLayout';
 import {
   Accordion,
   AccordionContent,
   AccordionItem,
   AccordionTrigger,
-} from '@/components/ui/accordion';
-import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
+} from '../components/ui/accordion';
+import { Input } from '../components/ui/input';
+import { Button } from '../components/ui/button';
 import { Search, ArrowRight, Shield } from 'lucide-react';
-import { THEME } from '@/lib/theme';
+import { THEME } from '../lib/theme';
 
 interface FAQItem {
   id: string;

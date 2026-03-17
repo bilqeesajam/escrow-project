@@ -1,8 +1,8 @@
 import { useState, useEffect } from "react";
 import { Shield, Clock } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { useAuth } from "@/lib/auth-context";
-import { StatusBadge } from "@/components/StatusBadge";
+import { useAuth } from "../lib/auth-context";
+import { StatusBadge } from "../components/StatusBadge";
 
 export default function KYCPendingPage() {
   const { profile, signOut } = useAuth();

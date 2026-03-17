@@ -1,7 +1,7 @@
 import { Link } from "react-router-dom";
-import { Button } from "@/components/ui/button";
+import { Button } from "../components/ui/button";
 import { CheckCircle2, Percent, ArrowRight, HelpCircle } from "lucide-react";
-import PublicLayout from "@/components/PublicLayout";
+import PublicLayout from "../components/PublicLayout";
 
 const pricingTiers = [
   { from: "R0",          to: "R20,000",       pct: "1.50%", highlight: false },

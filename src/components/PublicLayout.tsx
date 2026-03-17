@@ -1,9 +1,9 @@
 import { Link } from "react-router-dom";
-import { Button } from "@/components/ui/button";
+import { Button } from "../components/ui/button";
 import { Shield, Moon, Sun, ArrowRight } from "lucide-react";
-import { useAuth } from "@/lib/auth-context";
-import { useTheme } from "@/lib/theme-context";
-import { NavAvatar } from "@/components/NavAvatar";
+import { useAuth } from "../lib/auth-context";
+import { useTheme } from "../lib/theme-context";
+import { NavAvatar } from "../components/NavAvatar";
 import { ReactNode } from "react";
 
 export const navLinkClass =

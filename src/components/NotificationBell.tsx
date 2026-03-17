@@ -1,12 +1,12 @@
 import { Bell } from "lucide-react";
 import { useEffect, useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
-import { useAuth } from "@/lib/auth-context";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { Button } from "@/components/ui/button";
+import { supabase } from "../integrations/supabase/client";
+import { useAuth } from "../lib/auth-context";
+import { Popover, PopoverContent, PopoverTrigger } from "../components/ui/popover";
+import { ScrollArea } from "../components/ui/scroll-area";
+import { Button } from "../components/ui/button";
 import { formatDistanceToNow } from "date-fns";
-import type { Tables } from "@/integrations/supabase/types";
+import type { Tables } from "../integrations/supabase/types";
 
 type Notification = Tables<"notifications">;
 

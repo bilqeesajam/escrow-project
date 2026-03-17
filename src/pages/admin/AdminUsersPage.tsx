@@ -1,9 +1,9 @@
 import { useState, useEffect, useMemo } from "react";
-import { supabase } from "@/integrations/supabase/client";
-import { AppLayout } from "@/components/AppLayout";
-import { Input } from "@/components/ui/input";
+import { supabase } from "../../integrations/supabase/client";
+import { AppLayout } from "../../components/AppLayout";
+import { Input } from "../../components/ui/input";
 import { Loader2, Search, X, ArrowUpDown } from "lucide-react";
-import type { Tables } from "@/integrations/supabase/types";
+import type { Tables } from "../../integrations/supabase/types";
 import { formatDistanceToNow } from "date-fns";
 
 type Profile = Tables<"profiles">;

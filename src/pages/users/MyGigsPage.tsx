@@ -1,13 +1,13 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { supabase } from "@/integrations/supabase/client";
-import { useAuth } from "@/lib/auth-context";
-import { AppLayout } from "@/components/AppLayout";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Button } from "@/components/ui/button";
-import { useToast } from "@/hooks/use-toast";
+import { supabase } from "../../integrations/supabase/client";
+import { useAuth } from "../../lib/auth-context";
+import { AppLayout } from "../../components/AppLayout";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "../../components/ui/tabs";
+import { Button } from "../../components/ui/button";
+import { useToast } from "../../hooks/use-toast";
 import { Briefcase, Loader2, Search, X, Plus, Bell } from "lucide-react";
-import type { Tables } from "@/integrations/supabase/types";
+import type { Tables } from "../../integrations/supabase/types";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 

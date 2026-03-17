@@ -2,11 +2,11 @@ import { Link } from "react-router-dom";
 import {
   DropdownMenu, DropdownMenuContent,
   DropdownMenuItem, DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+} from "../components/ui/dropdown-menu";
+import { Avatar, AvatarFallback, AvatarImage } from "../components/ui/avatar";
 import { LogOut } from "lucide-react";
-import { useAuth } from "@/lib/auth-context";
-import { Button } from "@/components/ui/button";
+import { useAuth } from "../lib/auth-context";
+import { Button } from "../components/ui/button";
  
 function getInitials(name?: string | null, email?: string | null): string {
   if (name) return name.split(" ").map(w => w[0]).join("").toUpperCase().slice(0, 2);

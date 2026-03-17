@@ -1,4 +1,4 @@
-import PublicLayout from "@/components/PublicLayout";
+import PublicLayout from "../components/PublicLayout";
 import { Lock, Database, Share2, Trash2, UserCheck, Mail } from "lucide-react";
 
 const sections = [

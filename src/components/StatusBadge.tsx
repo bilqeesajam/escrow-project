@@ -1,4 +1,4 @@
-import { cn } from "@/lib/utils";
+import { cn } from "../lib/utils";
 
 const statusStyles: Record<string, string> = {
   open: "bg-success/10 text-success border-success/20",

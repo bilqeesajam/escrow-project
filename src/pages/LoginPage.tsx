@@ -1,11 +1,11 @@
 import { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import { supabase } from "@/integrations/supabase/client";
-import { useAuth } from "@/lib/auth-context";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Card } from "@/components/ui/card";
+import { supabase } from "../integrations/supabase/client";
+import { useAuth } from "../lib/auth-context";
+import { Button } from "../components/ui/button";
+import { Input } from "../components/ui/input";
+import { Label } from "../components/ui/label";
+import { Card } from "../components/ui/card";
 import { toast } from "sonner";
 import { Loader2, ArrowRight, ArrowLeft } from "lucide-react";
 

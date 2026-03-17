@@ -1,16 +1,16 @@
 import { useState, useEffect } from "react";
-import { supabase } from "@/integrations/supabase/client";
-import { AppLayout } from "@/components/AppLayout";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
-import { Input } from "@/components/ui/input";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { supabase } from "../../integrations/supabase/client";
+import { AppLayout } from "../../components/AppLayout";
+import { Card, CardContent, CardHeader, CardTitle } from "../../components/ui/card";
+import { Button } from "../../components/ui/button";
+import { Textarea } from "../../components/ui/textarea";
+import { Input } from "../../components/ui/input";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "../../components/ui/tabs";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../../components/ui/select";
 import { toast } from "sonner";
 import { Loader2, AlertTriangle, ArrowUpDown, CheckCircle2, Clock, LayoutList } from "lucide-react";
-import type { Tables } from "@/integrations/supabase/types";
-import { backendRequest } from "@/lib/backend";
+import type { Tables } from "../../integrations/supabase/types";
+import { backendRequest } from "../../lib/backend";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 

@@ -1,5 +1,5 @@
 import jsPDF from "jspdf";
-import type { Tables } from "@/integrations/supabase/types";
+import type { Tables } from "../integrations/supabase/types";
 
 type Gig     = Tables<"gigs">;
 type Profile = Tables<"profiles">;
