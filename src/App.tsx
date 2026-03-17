@@ -1,11 +1,11 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Route, Routes } from "react-router-dom";
-import { Toaster as Sonner } from "./components/ui/sonner";
-import { Toaster } from "./components/ui/toaster";
-import { TooltipProvider } from "./components/ui/tooltip";
-import { AuthProvider, useProtectedNavigation } from "./lib/auth-context";
-import { ThemeProvider } from "./lib/theme-context";
-import { ProtectedRoute } from "./components/ProtectedRoute";
+import { Toaster as Sonner } from "@/components/ui/sonner";
+import { Toaster } from "@/components/ui/toaster";
+import { TooltipProvider } from "@/components/ui/tooltip";
+import { AuthProvider, useProtectedNavigation } from "@/lib/auth-context";
+import { ThemeProvider } from "@/lib/theme-context";
+import { ProtectedRoute } from "@/components/ProtectedRoute";
 
 import Index from "./pages/Index";
 import LoginPage from "./pages/LoginPage";
@@ -36,6 +36,8 @@ import PricingPage from "./pages/PricingPage";
 import ContactPage from "./pages/ContactPage";
 import TermsOfServicePage from "./pages/TermsOfServicePage";
 import PrivacyPolicyPage from "./pages/PrivacyPolicyPage";
+import ForgotPassword from "./pages/ForgotPassword";
+import ResetPassword from "./pages/ResetPassword";
 
 const queryClient = new QueryClient();
 
@@ -48,6 +50,8 @@ function AppContent() {
       <Route path="/" element={<Index />} />
       <Route path="/login" element={<LoginPage />} />
       <Route path="/signup" element={<SignupPage />} />
+      <Route path="/forgot-password" element={<ForgotPassword />} />
+      <Route path="/reset-password" element={<ResetPassword />} />
       <Route path="/choose-role" element={<ChooseRolePage />} />
       <Route path="/kyc" element={<KYCPage />} />
       <Route path="/kyc-pending" element={<KYCPendingPage />} />
