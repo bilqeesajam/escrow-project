@@ -10,7 +10,7 @@ import {
 } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
 import { useTheme } from "@/lib/theme-context";
-import { NavAvatar } from "@/components/navavatar";
+import { NavAvatar } from "@/components/NavAvatar";
 import { useState, useMemo } from "react";
 
 function scrollTo(id: string) {
