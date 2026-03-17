@@ -31,9 +31,9 @@ const adminLinks = [
   { title: "Dashboard",         url: "/admin",                   icon: LayoutDashboard },
   { title: "KYC Queue",         url: "/admin/kyc",               icon: Shield          },
   { title: "All Gigs",          url: "/admin/gigs",              icon: Briefcase       },
+  { title: "Pricing",           url: "/admin/pricing",           icon: DollarSign      },
   { title: "Disputes",          url: "/admin/disputes",          icon: AlertTriangle   },
   { title: "Users",             url: "/admin/users",             icon: Users           },
-  { title: "Pricing",           url: "/admin/pricing",           icon: DollarSign      },
   // { title: "Pricing Overrides", url: "/admin/pricing-overrides", icon: DollarSign      },
 ];
 
