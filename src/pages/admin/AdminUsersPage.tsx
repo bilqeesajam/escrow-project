@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo } from "react";
 import { supabase } from "../../integrations/supabase/client";
+import { backendRequest } from "../../lib/backend";
 import { AppLayout } from "../../components/AppLayout";
 import { Input } from "../../components/ui/input";
 import { Loader2, Search, X, ArrowUpDown } from "lucide-react";
@@ -49,9 +50,12 @@ export default function AdminUsersPage() {
         // using the admin API — fall back gracefully if not available
         let emailMap: Record<string, string> = {};
         try {
-          const { data: authUsers } = await supabase.auth.admin.listUsers();
+          const authUsers = await backendRequest<{ users?: { id: string; email?: string }[] }>(
+            "/api/admin/supabase-users/?page=1&per_page=1000",
+            { method: "GET" }
+          );
           emailMap = Object.fromEntries((authUsers?.users ?? []).map(u => [u.id, u.email ?? ""]));
-        } catch { /* admin API not accessible from client — leave blank */ }
+        } catch { /* backend admin endpoint not accessible — leave blank */ }
 
         setUsers((data ?? []).map(p => ({ ...p, email: emailMap[p.id] })));
         setLoading(false);
@@ -236,3 +240,6 @@ export default function AdminUsersPage() {
     </AppLayout>
   );
 }
+
+
+
