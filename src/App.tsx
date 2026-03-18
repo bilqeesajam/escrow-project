@@ -41,7 +41,6 @@ import ResetPassword from "./pages/ResetPassword";
 
 const queryClient = new QueryClient();
 
-// Inner component to use the protected navigation hook
 function AppContent() {
   useProtectedNavigation();
 
@@ -53,6 +52,10 @@ function AppContent() {
       <Route path="/forgot-password" element={<ForgotPassword />} />
       <Route path="/reset-password" element={<ResetPassword />} />
       <Route path="/choose-role" element={<ChooseRolePage />} />
+
+      {/* Google OAuth lands here — ChooseRolePage handles new vs returning users */}
+      <Route path="/auth/callback" element={<ChooseRolePage />} />
+
       <Route path="/kyc" element={<KYCPage />} />
       <Route path="/kyc-pending" element={<KYCPendingPage />} />
       <Route
