@@ -9,11 +9,19 @@ import { Button } from '../components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '../components/ui/avatar';
 import { Separator } from '../components/ui/separator';
 import { Progress } from '../components/ui/progress';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '../components/ui/dialog';
 import { toast } from 'sonner';
 import {
   Save, Lock, ShieldCheck, TrendingUp, AlertTriangle,
   CheckCircle2, Activity, Calendar, Wallet, Eye, EyeOff,
-  User, BadgeCheck, Clock, Camera, Loader2,
+  User, BadgeCheck, Clock, Camera, Loader2, RefreshCw,
 } from 'lucide-react';
 import type { Tables } from '../integrations/supabase/types';
 
@@ -29,13 +37,16 @@ function getInitials(name?: string | null, email?: string | null): string {
 const zar = (n: number) =>
   new Intl.NumberFormat('en-ZA', { style: 'currency', currency: 'ZAR' }).format(n);
 
-const MAX_AVATAR_BYTES = 5 * 1024 * 1024; // 5 MB — matches bucket limit
+const MAX_AVATAR_BYTES = 5 * 1024 * 1024;
 
 const KYC_CONFIG: Record<string, { label: string; className: string; icon: React.ReactNode }> = {
   approved: { label: 'Verified',     className: 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20', icon: <BadgeCheck className="h-3 w-3" /> },
-  pending:  { label: 'KYC Pending',  className: 'bg-amber-500/10  text-amber-500  border-amber-500/20',  icon: <Clock       className="h-3 w-3" /> },
-  rejected: { label: 'KYC Rejected', className: 'bg-red-500/10    text-red-500    border-red-500/20',    icon: <AlertTriangle className="h-3 w-3" /> },
+  pending:  { label: 'KYC Pending',  className: 'bg-amber-500/10  text-amber-500  border-amber-500/20',    icon: <Clock       className="h-3 w-3" /> },
+  rejected: { label: 'KYC Rejected', className: 'bg-red-500/10    text-red-500    border-red-500/20',      icon: <AlertTriangle className="h-3 w-3" /> },
 };
+
+// localStorage key to track whether this user has already used their one role change
+const roleChangedKey = (userId: string) => `gighold_role_changed_${userId}`;
 
 interface Stats {
   total: number; completed: number; disputed: number; active: number; totalValue: number;
@@ -57,12 +68,21 @@ export default function ProfilePage() {
   const [stats,           setStats]           = useState<Stats>({ total: 0, completed: 0, disputed: 0, active: 0, totalValue: 0 });
   const [loadingStats,    setLoadingStats]    = useState(true);
 
+  // Role-change dialog state
+  const [showRoleDialog,  setShowRoleDialog]  = useState(false);
+  const [changingRole,    setChangingRole]    = useState(false);
+  const [roleAlreadyUsed, setRoleAlreadyUsed] = useState(false);
+
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (profile) {
       setDisplayName(profile.full_name ?? '');
       fetchStats();
+      // Check if this user already spent their one role change
+      if (user) {
+        setRoleAlreadyUsed(!!localStorage.getItem(roleChangedKey(user.id)));
+      }
     }
   }, [profile]);
 
@@ -97,11 +117,9 @@ export default function ProfilePage() {
       e.target.value = '';
       return;
     }
-    // Show local preview immediately
     const reader = new FileReader();
     reader.onload = ev => setAvatarPreview(ev.target?.result as string);
     reader.readAsDataURL(file);
-    // Upload straight away
     uploadAvatar(file);
   };
 
@@ -119,7 +137,6 @@ export default function ProfilePage() {
       if (uploadError) throw uploadError;
 
       const { data: urlData } = supabase.storage.from('avatars').getPublicUrl(filePath);
-      // Bust the CDN cache by appending a timestamp
       const avatarUrl = `${urlData.publicUrl}?t=${Date.now()}`;
 
       const { error: updateError } = await supabase
@@ -133,7 +150,7 @@ export default function ProfilePage() {
       toast.success('Profile picture updated.');
     } catch (err: any) {
       toast.error(err.message ?? 'Avatar upload failed.');
-      setAvatarPreview(null); // revert preview on failure
+      setAvatarPreview(null);
     } finally {
       setUploadingAvatar(false);
       if (fileInputRef.current) fileInputRef.current.value = '';
@@ -164,15 +181,49 @@ export default function ProfilePage() {
     } finally { setSaving(false); }
   };
 
+  // ── Role change ────────────────────────────────────────────────────────────
+  const handleConfirmRoleChange = async () => {
+    if (!user || !profile) return;
+
+    const newRole: 'client' | 'hustler' = profile.role === 'client' ? 'hustler' : 'client';
+
+    setChangingRole(true);
+    try {
+      // Update profiles table
+      const { error: profileError } = await supabase
+        .from('profiles')
+        .update({ role: newRole })
+        .eq('id', user.id);
+      if (profileError) throw profileError;
+
+      // Replace entry in user_roles table (delete old, upsert new)
+      await supabase.from('user_roles').delete().eq('user_id', user.id);
+      await supabase.from('user_roles').upsert({ user_id: user.id, role: newRole });
+
+      // Lock permanently in localStorage
+      localStorage.setItem(roleChangedKey(user.id), '1');
+      setRoleAlreadyUsed(true);
+
+      await refreshProfile();
+      toast.success(`Role changed to ${newRole.charAt(0).toUpperCase() + newRole.slice(1)} successfully.`);
+    } catch (err: any) {
+      toast.error(err.message ?? 'Could not change role.');
+    } finally {
+      setChangingRole(false);
+      setShowRoleDialog(false);
+    }
+  };
+
   // ── Derived ───────────────────────────────────────────────────────────────
   const completionRate = stats.total > 0 ? Math.round((stats.completed / stats.total) * 100) : 0;
   const memberSince    = profile?.created_at
     ? new Date(profile.created_at).toLocaleDateString('en-ZA', { year: 'numeric', month: 'long', day: 'numeric' })
     : '—';
+
   const kycCfg    = KYC_CONFIG[profile?.kyc_status ?? 'pending'];
   const roleLabel = profile?.role ? profile.role.charAt(0).toUpperCase() + profile.role.slice(1) : '—';
+  const oppositeRole = profile?.role === 'client' ? 'Hustler' : 'Client';
 
-  // Prefer local preview → DB avatar_url → fallback to initials
   const avatarSrc = avatarPreview ?? profile?.avatar_url ?? undefined;
 
   const statCards = [
@@ -186,7 +237,45 @@ export default function ProfilePage() {
     <AppLayout>
       <div className="max-w-4xl mx-auto space-y-6 pb-10">
 
-        {/* ── Hero card ──────────────────────────────────────────────────── */}
+        {/* ── Role Change Confirmation Dialog ────────────────────────────────── */}
+        <Dialog open={showRoleDialog} onOpenChange={setShowRoleDialog}>
+          <DialogContent className="sm:max-w-md border-destructive/20 bg-card shadow-xl">
+            <DialogHeader className="space-y-3">
+              <div className="mx-auto w-12 h-12 rounded-full bg-destructive/10 flex items-center justify-center">
+                <AlertTriangle className="h-6 w-6 text-destructive" />
+              </div>
+              <DialogTitle className="text-center text-lg">Are you sure?</DialogTitle>
+              <DialogDescription className="text-center text-sm leading-relaxed">
+                You can only change your role <span className="font-semibold text-foreground">once</span> and the effect is{' '}
+                <span className="font-semibold text-foreground">permanent</span>. Your role will switch from{' '}
+                <span className="font-semibold text-foreground">{roleLabel}</span> to{' '}
+                <span className="font-semibold text-foreground">{oppositeRole}</span>.
+              </DialogDescription>
+            </DialogHeader>
+            <DialogFooter className="flex flex-col-reverse sm:flex-row gap-2 mt-2">
+              <Button
+                variant="outline"
+                className="flex-1"
+                onClick={() => setShowRoleDialog(false)}
+                disabled={changingRole}
+              >
+                No, keep my role
+              </Button>
+              <Button
+                variant="destructive"
+                className="flex-1"
+                onClick={handleConfirmRoleChange}
+                disabled={changingRole}
+              >
+                {changingRole
+                  ? <><Loader2 className="h-4 w-4 animate-spin mr-2" /> Changing…</>
+                  : 'Yes, change role'}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        {/* ── Hero card ──────────────────────────────────────────────────────── */}
         <Card className="overflow-hidden">
           <div className="h-28" style={{ background: 'linear-gradient(135deg, hsl(var(--primary) / 0.9) 0%, hsl(var(--primary) / 0.4) 45%, hsl(var(--accent) / 0.4) 75%, hsl(var(--accent) / 0.1) 100%)' }} />
           <div className="px-6 pb-6 -mt-12">
@@ -201,7 +290,6 @@ export default function ProfilePage() {
                   </AvatarFallback>
                 </Avatar>
 
-                {/* Camera overlay button */}
                 <button
                   type="button"
                   onClick={() => fileInputRef.current?.click()}
@@ -220,7 +308,6 @@ export default function ProfilePage() {
                     : <Camera  className="h-6 w-6 text-white" />}
                 </button>
 
-                {/* Hidden file input */}
                 <input
                   ref={fileInputRef}
                   type="file"
@@ -256,7 +343,6 @@ export default function ProfilePage() {
               </div>
             </div>
 
-            {/* Upload hint */}
             <p className="text-xs text-muted-foreground mt-3 ml-0.5">
               Hover over your avatar to change it · Max 5 MB · JPG, PNG, WebP
             </p>
@@ -365,7 +451,7 @@ export default function ProfilePage() {
               <Input id="displayName" value={displayName} onChange={e => setDisplayName(e.target.value)} placeholder="Your display name" />
             </div>
 
-            {/* Read-only info */}
+            {/* Read-only info + role change */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label>Email</Label>
@@ -373,7 +459,40 @@ export default function ProfilePage() {
               </div>
               <div className="space-y-2">
                 <Label>Role</Label>
-                <Input value={roleLabel} disabled className="opacity-60 capitalize" />
+                <div className="flex items-center gap-2">
+                  <Input value={roleLabel} disabled className="opacity-60 capitalize flex-1" />
+                  {!roleAlreadyUsed ? (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      className="shrink-0 h-10 px-3 border-primary/20 hover:border-primary/40 hover:bg-primary/5 text-xs gap-1.5"
+                      onClick={() => setShowRoleDialog(true)}
+                      title={`Switch to ${oppositeRole}`}
+                    >
+                      <RefreshCw className="h-3.5 w-3.5" />
+                      Switch
+                    </Button>
+                  ) : (
+                    <div
+                      className="shrink-0 h-10 px-3 flex items-center rounded-md border border-border bg-muted/40 text-xs text-muted-foreground gap-1.5 cursor-not-allowed"
+                      title="Role change already used"
+                    >
+                      <Lock className="h-3.5 w-3.5" />
+                      Locked
+                    </div>
+                  )}
+                </div>
+                {!roleAlreadyUsed && (
+                  <p className="text-[11px] text-muted-foreground">
+                    You can switch roles <span className="font-medium">once</span>. This is permanent.
+                  </p>
+                )}
+                {roleAlreadyUsed && (
+                  <p className="text-[11px] text-muted-foreground">
+                    Role changes are permanent and cannot be undone.
+                  </p>
+                )}
               </div>
             </div>
 

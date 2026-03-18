@@ -113,13 +113,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         let p = await fetchProfile(newSession.user.id);
 
         // If profile doesn't exist (common with Google OAuth)
+        // Do NOT set a default role — leave it null so LoginPage redirects
+        // the user to /choose-role before proceeding to KYC.
         if (!p) {
           const { data: newProfile } = await supabase
             .from("profiles")
             .insert({
               id: newSession.user.id,
               full_name: newSession.user.user_metadata?.full_name || "",
-              role: "client",
+              role: null,
               kyc_status: "pending",
               balance: 0,
             })

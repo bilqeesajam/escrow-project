@@ -23,6 +23,9 @@ export default function LoginPage() {
     if (profile !== null) {
       if (profile.role === "admin") {
         navigate("/admin", { replace: true });
+      } else if (!profile.role) {
+        // New Google sign-up — no role chosen yet → pick a role first
+        navigate("/choose-role", { replace: true });
       } else if (profile.kyc_status === "approved") {
         navigate("/dashboard", { replace: true });
       } else if (
@@ -36,31 +39,20 @@ export default function LoginPage() {
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-
     setLoading(true);
-
-    const { error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
-
+    const { error } = await supabase.auth.signInWithPassword({ email, password });
     setLoading(false);
-
-    if (error) {
-      toast.error(error.message);
-    }
+    if (error) toast.error(error.message);
   };
 
   const handleGoogleLogin = async () => {
     setLoading(true);
-
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
       options: {
-        redirectTo: `${window.location.origin}/login`,
+        redirectTo: `${window.location.origin}/auth/callback`,
       },
     });
-
     if (error) {
       toast.error(error.message);
       setLoading(false);
