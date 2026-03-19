@@ -28,62 +28,6 @@ export const useAuth = () => {
   return context;
 };
 
-/**
- * Hook to protect against back navigation when user is signed in.
- * Prevents users from going back using browser back button.
- * When they try to go back while authenticated, the page refreshes.
- * When they sign out and try to go back, they are redirected to login.
- */
-export const useProtectedNavigation = () => {
-  const { user } = useAuth();
-  const prevUserRef = React.useRef<User | null>(null);
-
-  useEffect(() => {
-    // Detect if user just signed out (went from authenticated to null)
-    const userJustSignedOut = prevUserRef.current !== null && user === null;
-    prevUserRef.current = user;
-
-    if (!user) {
-      // User is not authenticated
-      if (userJustSignedOut) {
-        // User just signed out - set up back button to go to login
-        // Push a state so back button triggers an event
-        window.history.pushState({ loggedOut: true }, "");
-
-        const handlePopState = () => {
-          // Redirect to login when they click back after signing out
-          window.location.href = "/login";
-        };
-
-        window.addEventListener("popstate", handlePopState);
-
-        return () => {
-          window.removeEventListener("popstate", handlePopState);
-        };
-      }
-      // User was already signed out, no protection needed
-      return;
-    }
-
-    // User is authenticated
-    // Push a dummy state to the history stack to prevent going back
-    const state = { protected: true, timestamp: Date.now() };
-    window.history.pushState(state, "");
-
-    // Listen for back button clicks
-    const handlePopState = (event: PopStateEvent) => {
-      // Refresh the page to prevent going back while authenticated
-      window.location.reload();
-    };
-
-    window.addEventListener("popstate", handlePopState);
-
-    return () => {
-      window.removeEventListener("popstate", handlePopState);
-    };
-  }, [user]);
-};
-
 async function fetchProfile(userId: string): Promise<Profile | null> {
   const { data } = await supabase
     .from("profiles")

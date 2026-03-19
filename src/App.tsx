@@ -3,7 +3,7 @@ import { BrowserRouter, Route, Routes } from "react-router-dom";
 import { Toaster as Sonner } from "./components/ui/sonner";
 import { Toaster } from "./components/ui/toaster";
 import { TooltipProvider } from "./components/ui/tooltip";
-import { AuthProvider, useProtectedNavigation } from "./lib/auth-context";
+import { AuthProvider } from "./lib/auth-context";
 import { ThemeProvider } from "./lib/theme-context";
 import { ProtectedRoute } from "./components/ProtectedRoute";
 
@@ -42,8 +42,6 @@ import ResetPassword from "./pages/ResetPassword";
 const queryClient = new QueryClient();
 
 function AppContent() {
-  useProtectedNavigation();
-
   return (
     <Routes>
       <Route path="/" element={<Index />} />
