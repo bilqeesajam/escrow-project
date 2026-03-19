@@ -3,14 +3,14 @@ import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "../integrations/supabase/client";
 import { useAuth } from "../lib/auth-context";
 import { AppLayout } from "../components/AppLayout";
-import { PINInput } from "../components/PINInput";
 import { ConfirmModal } from "../components/ConfirmModal";
 import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card";
 import { Button } from "../components/ui/button";
+import { Input } from "../components/ui/input";
 import { Textarea } from "../components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "../components/ui/dialog";
 import { toast } from "sonner";
-import { Loader2, MapPin, Clock, AlertTriangle, FileDown } from "lucide-react";
+import { Loader2, MapPin, Clock, AlertTriangle, FileDown, KeyRound, CheckCircle2 } from "lucide-react";
 import type { Tables } from "../integrations/supabase/types";
 import { formatDistanceToNow } from "date-fns";
 import { Timeline, TimelineEvent } from "../components/Timeline";
@@ -41,6 +41,81 @@ function StatusPill({ status }: { status: string }) {
 const zar = (n: number | null | undefined) =>
   n != null ? `R ${Number(n).toFixed(2)}` : "—";
 
+// ─── Inline PIN entry component ───────────────────────────────────────────────
+function PINEntry({
+  onSubmit,
+  loading,
+}: {
+  onSubmit: (pin: string) => void;
+  loading: boolean;
+}) {
+  const [pin, setPin] = useState("");
+  const [error, setError] = useState(false);
+
+  const handleChange = (val: string) => {
+    // Only allow digits, max 6
+    const clean = val.replace(/\D/g, "").slice(0, 6);
+    setPin(clean);
+    setError(false);
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (pin.length !== 6) { setError(true); return; }
+    onSubmit(pin);
+  };
+
+  return (
+    <div className="rounded-2xl border-2 border-emerald-500/30 bg-emerald-500/5 p-5 space-y-4">
+      {/* Header */}
+      <div className="flex items-center gap-3">
+        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-500/15 shrink-0">
+          <KeyRound className="h-5 w-5 text-emerald-500" />
+        </div>
+        <div>
+          <p className="font-bold text-foreground text-sm">Enter Completion PIN</p>
+          <p className="text-xs text-muted-foreground">Ask the client for their 6-digit PIN to release your payment.</p>
+        </div>
+      </div>
+
+      {/* PIN input */}
+      <form onSubmit={handleSubmit} className="flex gap-3 items-start">
+        <div className="flex-1 space-y-1">
+          <Input
+            type="text"
+            inputMode="numeric"
+            pattern="[0-9]*"
+            maxLength={6}
+            value={pin}
+            onChange={e => handleChange(e.target.value)}
+            placeholder="000000"
+            className={`rounded-xl h-11 text-center font-mono text-xl tracking-[0.5em] ${
+              error ? "border-destructive focus:ring-destructive/20" : ""
+            }`}
+            disabled={loading}
+            autoFocus
+          />
+          {error && (
+            <p className="text-xs text-destructive flex items-center gap-1">
+              <AlertTriangle className="h-3 w-3" /> PIN must be exactly 6 digits.
+            </p>
+          )}
+        </div>
+        <Button
+          type="submit"
+          disabled={loading || pin.length !== 6}
+          className="h-11 rounded-xl font-semibold px-5 bg-emerald-600 hover:bg-emerald-700 text-white shrink-0"
+        >
+          {loading
+            ? <Loader2 className="h-4 w-4 animate-spin" />
+            : <><CheckCircle2 className="h-4 w-4 mr-1.5" /> Confirm</>}
+        </Button>
+      </form>
+    </div>
+  );
+}
+
+// ─── Page ─────────────────────────────────────────────────────────────────────
 export default function GigDetailPage() {
   const { id } = useParams<{ id: string }>();
   const { user, profile, refreshProfile } = useAuth();
@@ -60,26 +135,20 @@ export default function GigDetailPage() {
     if (!id) return;
     const { data } = await supabase.from("gigs").select("*").eq("id", id).single();
     setGig(data);
-
     if (data?.hustler_id) {
       const { data: hp } = await supabase.from("profiles").select("*").eq("id", data.hustler_id).single();
       setHustlerProfile(hp ?? null);
-    } else {
-      setHustlerProfile(null);
-    }
-
+    } else { setHustlerProfile(null); }
     if (data?.client_id) {
       const { data: cp } = await supabase.from("profiles").select("*").eq("id", data.client_id).single();
       setClientProfile(cp ?? null);
     }
-
     setLoading(false);
   };
 
   const fetchTimeline = async () => {
     if (!id) return;
     const evts: TimelineEvent[] = [];
-
     const { data: gigData } = await supabase.from("gigs").select("*").eq("id", id).single();
     if (!gigData) return;
 
@@ -97,22 +166,11 @@ export default function GigDetailPage() {
     if (gigData.status === "cancelled")
       evts.push({ id: `${gigData.id}-cancelled`, event_type: "cancelled", message: "Gig cancelled", created_at: gigData.updated_at });
 
-    const { data: txns } = await supabase
-      .from("transactions").select("*").eq("gig_id", id).order("created_at", { ascending: true });
-    txns?.forEach(t =>
-      evts.push({ id: t.id, event_type: t.type, message: `${zar(t.amount)} ${t.type}`, created_at: t.created_at })
-    );
+    const { data: txns } = await supabase.from("transactions").select("*").eq("gig_id", id).order("created_at", { ascending: true });
+    txns?.forEach(t => evts.push({ id: t.id, event_type: t.type, message: `${zar(t.amount)} ${t.type}`, created_at: t.created_at }));
 
-    const { data: disputes } = await supabase
-      .from("disputes").select("*").eq("gig_id", id).order("created_at", { ascending: true });
-    disputes?.forEach(d =>
-      evts.push({
-        id: d.id,
-        event_type: d.status === "open" ? "dispute_opened" : "dispute_resolved",
-        message: d.reason,
-        created_at: d.created_at,
-      })
-    );
+    const { data: disputes } = await supabase.from("disputes").select("*").eq("gig_id", id).order("created_at", { ascending: true });
+    disputes?.forEach(d => evts.push({ id: d.id, event_type: d.status === "open" ? "dispute_opened" : "dispute_resolved", message: d.reason, created_at: d.created_at }));
 
     evts.sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
     setEvents(evts);
@@ -120,27 +178,19 @@ export default function GigDetailPage() {
 
   useEffect(() => { fetchGig(); fetchTimeline(); }, [id]);
 
-  if (loading) return (
-    <AppLayout>
-      <div className="flex justify-center py-16">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
-      </div>
-    </AppLayout>
-  );
-  if (!gig) return (
-    <AppLayout>
-      <p className="text-center text-muted-foreground py-16">Gig not found</p>
-    </AppLayout>
-  );
+  if (loading) return <AppLayout><div className="flex justify-center py-16"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div></AppLayout>;
+  if (!gig)   return <AppLayout><p className="text-center text-muted-foreground py-16">Gig not found</p></AppLayout>;
 
   const isClient  = user?.id === gig.client_id;
   const isHustler = user?.id === gig.hustler_id;
 
-  const subtotal   = gig.pricing_subtotal          ?? gig.budget;
-  const feeAmt     = gig.pricing_fee               ?? null;
-  const total      = gig.pricing_total             ?? gig.budget;
-  const feePct     = gig.platform_fee_percentage   ?? null;
+  const subtotal   = gig.pricing_subtotal        ?? gig.budget;
+  const feeAmt     = gig.pricing_fee             ?? null;
+  const total      = gig.pricing_total           ?? gig.budget;
+  const feePct     = gig.platform_fee_percentage ?? null;
   const hustlerPay = feeAmt != null ? total - feeAmt : subtotal;
+
+  // ── Actions ───────────────────────────────────────────────────────────────
 
   const handleConfirmRelease = async () => {
     setActionLoading(true);
@@ -180,8 +230,20 @@ export default function GigDetailPage() {
     fetchGig();
   };
 
+  // ── PIN entry (hustler enters PIN given by client) ─────────────────────────
   const handlePIN = async (pin: string) => {
-    if (pin !== gig.completion_pin) { toast.error("Invalid PIN. Please try again."); return; }
+    // Always re-fetch the latest PIN from the DB — the hustler's local gig
+    // state may be stale (loaded before the client generated the PIN).
+    const { data: freshGig } = await supabase
+      .from("gigs")
+      .select("completion_pin")
+      .eq("id", gig.id)
+      .single();
+
+    if (!freshGig?.completion_pin || pin !== freshGig.completion_pin) {
+      toast.error("Invalid PIN. Please check with the client and try again.");
+      return;
+    }
     setActionLoading(true);
     await supabase.from("gigs").update({ status: "completed" as any, hustler_confirmed: true }).eq("id", gig.id);
     if (gig.hustler_id) {
@@ -194,10 +256,10 @@ export default function GigDetailPage() {
         fee_amount: feeAmt, fee_percentage: feePct, subtotal_amount: subtotal, total_amount: total,
       });
       await supabase.from("notifications").insert({ user_id: gig.hustler_id, message: `${zar(payout)} released for "${gig.title}".`, gig_id: gig.id });
-      await supabase.from("notifications").insert({ user_id: gig.client_id,  message: `"${gig.title}" completed. Funds released.`, gig_id: gig.id });
+      await supabase.from("notifications").insert({ user_id: gig.client_id, message: `"${gig.title}" completed. Funds released.`, gig_id: gig.id });
     }
     await refreshProfile();
-    toast.success("Gig completed! Funds released.");
+    toast.success("Gig completed! Funds released to your wallet.");
     setActionLoading(false);
     fetchGig();
   };
@@ -208,12 +270,9 @@ export default function GigDetailPage() {
     await supabase.from("gigs").update({ status: "disputed" as any }).eq("id", gig.id);
     await supabase.from("disputes").insert({ gig_id: gig.id, raised_by: user.id, reason: disputeReason.trim() });
     const otherId = isClient ? gig.hustler_id : gig.client_id;
-    if (otherId)
-      await supabase.from("notifications").insert({ user_id: otherId, message: `A dispute was opened on "${gig.title}".`, gig_id: gig.id });
+    if (otherId) await supabase.from("notifications").insert({ user_id: otherId, message: `A dispute was opened on "${gig.title}".`, gig_id: gig.id });
     toast.success("Dispute raised. Admin will review.");
-    setShowDispute(false);
-    setDisputeReason("");
-    setActionLoading(false);
+    setShowDispute(false); setDisputeReason(""); setActionLoading(false);
     fetchGig();
   };
 
@@ -230,12 +289,10 @@ export default function GigDetailPage() {
     } else {
       await supabase.from("gigs").update({ status: "disputed" as any }).eq("id", gig.id);
       await supabase.from("disputes").insert({ gig_id: gig.id, raised_by: user!.id, reason: "Client initiated cancellation after acceptance." });
-      if (gig.hustler_id)
-        await supabase.from("notifications").insert({ user_id: gig.hustler_id, message: `Client cancelled "${gig.title}". Dispute opened.`, gig_id: gig.id });
+      if (gig.hustler_id) await supabase.from("notifications").insert({ user_id: gig.hustler_id, message: `Client cancelled "${gig.title}". Dispute opened.`, gig_id: gig.id });
       toast.info("Dispute opened. Admin will decide fund allocation.");
     }
-    setShowCancel(false);
-    setActionLoading(false);
+    setShowCancel(false); setActionLoading(false);
     fetchGig();
   };
 
@@ -247,21 +304,15 @@ export default function GigDetailPage() {
       <div className="max-w-2xl mx-auto space-y-6 animate-fade-in">
         <Button variant="ghost" onClick={() => navigate(-1)} className="mb-2">← Back</Button>
 
-        {/* ── Header row ──────────────────────────────────────────────── */}
+        {/* Header */}
         <div className="flex items-center justify-between w-full">
           <p className="text-base font-semibold text-foreground">Transaction</p>
-          <Button
-            variant="outline"
-            size="icon"
-            title="Download PDF receipt"
-            onClick={() => generateReceipt({ gig, hustlerProfile, clientProfile })}
-            className="rounded-full border-border"
-          >
+          <Button variant="outline" size="icon" title="Download PDF receipt" onClick={() => generateReceipt({ gig, hustlerProfile, clientProfile })} className="rounded-full border-border">
             <FileDown className="h-4 w-4" />
           </Button>
         </div>
 
-        {/* ── Main gig card ────────────────────────────────────────────── */}
+        {/* Main gig card */}
         <Card>
           <CardHeader>
             <div className="flex items-start justify-between gap-2">
@@ -269,8 +320,8 @@ export default function GigDetailPage() {
               <StatusPill status={gig.status} />
             </div>
           </CardHeader>
-
           <CardContent className="space-y-6">
+
             <div className="grid grid-cols-2 gap-x-8 gap-y-4 text-sm">
               <div>
                 <p className="text-muted-foreground mb-0.5">Description</p>
@@ -296,11 +347,9 @@ export default function GigDetailPage() {
               </div>
             </div>
 
-            {/* Pricing breakdown */}
+            {/* Pricing */}
             <div className="rounded-xl border border-border overflow-hidden text-sm">
-              <div className="bg-muted/40 px-4 py-2 font-semibold text-xs text-muted-foreground uppercase tracking-wide">
-                Payment Breakdown
-              </div>
+              <div className="bg-muted/40 px-4 py-2 font-semibold text-xs text-muted-foreground uppercase tracking-wide">Payment Breakdown</div>
               <div className="divide-y divide-border">
                 <div className="flex justify-between px-4 py-2.5">
                   <span className="text-muted-foreground">Subtotal</span>
@@ -319,8 +368,8 @@ export default function GigDetailPage() {
                 {hustlerProfile && (
                   <>
                     <div className="flex justify-between px-4 py-2.5">
-                      <span className="text-muted-foreground">Hustler payout</span>
-                      <span className="font-medium text-foreground">{zar(hustlerPay)}</span>
+                      <span className="text-muted-foreground">Your payout</span>
+                      <span className="font-medium text-emerald-500">{zar(hustlerPay)}</span>
                     </div>
                     <div className="flex justify-between px-4 py-2.5">
                       <span className="text-muted-foreground">Hustler</span>
@@ -331,7 +380,7 @@ export default function GigDetailPage() {
               </div>
             </div>
 
-            {/* Client actions */}
+            {/* ── CLIENT ACTIONS ───────────────────────────────────────── */}
             {isClient && gig.status === "pending_confirmation" && !gig.client_confirmed && (
               <Button onClick={handleConfirmRelease} disabled={actionLoading} className="w-full">
                 {actionLoading && <Loader2 className="h-4 w-4 animate-spin mr-2" />}
@@ -339,17 +388,16 @@ export default function GigDetailPage() {
               </Button>
             )}
             {isClient && gig.client_confirmed && gig.completion_pin && gig.status === "pending_confirmation" && (
-              <Card className="bg-success/5 border-success/20">
-                <CardContent className="p-4">
-                  <p className="text-sm font-medium">
-                    Completion PIN: <span className="font-mono text-lg font-bold">{gig.completion_pin}</span>
-                  </p>
-                  <p className="text-xs text-muted-foreground">Share this PIN with the hustler to finalise.</p>
-                </CardContent>
-              </Card>
+              <div className="rounded-2xl border border-primary/20 bg-primary/5 p-5 space-y-2">
+                <p className="text-xs font-semibold uppercase tracking-wide text-primary">Completion PIN</p>
+                <p className="font-mono text-4xl font-bold tracking-[0.3em] text-foreground text-center py-2">
+                  {gig.completion_pin}
+                </p>
+                <p className="text-xs text-center text-muted-foreground">Share this PIN with the hustler to release their payment.</p>
+              </div>
             )}
 
-            {/* Hustler actions */}
+            {/* ── HUSTLER ACTIONS ──────────────────────────────────────── */}
             {isHustler && gig.status === "accepted" && (
               <Button onClick={handleStart} disabled={actionLoading} className="w-full">
                 {actionLoading && <Loader2 className="h-4 w-4 animate-spin mr-2" />}
@@ -362,8 +410,27 @@ export default function GigDetailPage() {
                 I'm Done
               </Button>
             )}
-            {isHustler && gig.status === "pending_confirmation" && gig.client_confirmed && (
-              <PINInput onComplete={handlePIN} disabled={actionLoading} />
+
+            {/* PIN entry — shown for all pending_confirmation states */}
+            {isHustler && gig.status === "pending_confirmation" && (
+              <>
+                {!gig.client_confirmed && (
+                  <div className="flex items-center gap-3 rounded-2xl border border-blue-500/20 bg-blue-500/5 px-4 py-3 text-xs text-blue-500">
+                    <Loader2 className="h-4 w-4 animate-spin shrink-0" />
+                    <span>
+                      Waiting for the client to confirm — once they do, enter the PIN they share with you below.
+                      <button
+                        type="button"
+                        onClick={fetchGig}
+                        className="ml-1.5 underline font-semibold hover:opacity-80"
+                      >
+                        Refresh
+                      </button>
+                    </span>
+                  </div>
+                )}
+                <PINEntry onSubmit={handlePIN} loading={actionLoading} />
+              </>
             )}
 
             {/* Marketplace accept */}
@@ -382,15 +449,13 @@ export default function GigDetailPage() {
                 </Button>
               )}
               {canCancel && gig.status !== "disputed" && (
-                <Button variant="outline" size="sm" onClick={() => setShowCancel(true)}>
-                  Cancel Gig
-                </Button>
+                <Button variant="outline" size="sm" onClick={() => setShowCancel(true)}>Cancel Gig</Button>
               )}
             </div>
           </CardContent>
         </Card>
 
-        {/* ── Timeline ─────────────────────────────────────────────────── */}
+        {/* Timeline */}
         <p className="text-base font-semibold text-foreground">Timeline</p>
         <Card>
           <CardContent className="mt-7">
@@ -400,32 +465,22 @@ export default function GigDetailPage() {
           </CardContent>
         </Card>
 
-        {/* ── Dispute dialog ────────────────────────────────────────────── */}
+        {/* Dispute dialog */}
         <Dialog open={showDispute} onOpenChange={setShowDispute}>
           <DialogContent>
             <DialogHeader><DialogTitle>Raise a Dispute</DialogTitle></DialogHeader>
-            <Textarea
-              placeholder="Explain your reason…"
-              value={disputeReason}
-              onChange={e => setDisputeReason(e.target.value)}
-              maxLength={500}
-            />
+            <Textarea placeholder="Explain your reason…" value={disputeReason} onChange={e => setDisputeReason(e.target.value)} maxLength={500} />
             <Button onClick={handleDispute} disabled={actionLoading || !disputeReason.trim()} className="w-full">
-              {actionLoading && <Loader2 className="h-4 w-4 animate-spin mr-2" />}
-              Submit Dispute
+              {actionLoading && <Loader2 className="h-4 w-4 animate-spin mr-2" />} Submit Dispute
             </Button>
           </DialogContent>
         </Dialog>
 
-        {/* ── Cancel confirm ────────────────────────────────────────────── */}
+        {/* Cancel confirm */}
         <ConfirmModal
           open={showCancel}
           title="Cancel Gig?"
-          description={
-            gig.status === "open"
-              ? `${zar(gig.pricing_total ?? gig.budget)} will be refunded to your wallet.`
-              : "This will open a dispute. Admin will decide fund allocation."
-          }
+          description={gig.status === "open" ? `${zar(gig.pricing_total ?? gig.budget)} will be refunded to your wallet.` : "This will open a dispute. Admin will decide fund allocation."}
           onConfirm={handleCancel}
           onCancel={() => setShowCancel(false)}
           confirmLabel="Cancel Gig"

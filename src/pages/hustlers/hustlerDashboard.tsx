@@ -199,7 +199,7 @@ export default function HustlerDashboard() {
               <CardTitle className="text-base font-semibold flex items-center gap-2">
                 <Briefcase className="h-4 w-4 text-primary" /> My Active Gigs
               </CardTitle>
-              <Button variant="ghost" size="sm" onClick={() => navigate("/my-gigs")} className="text-xs text-muted-foreground">
+              <Button variant="ghost" size="sm" onClick={() => navigate("/my-jobs")} className="text-xs text-muted-foreground">
                 View all <ArrowRight className="h-3.5 w-3.5 ml-1" />
               </Button>
             </CardHeader>
