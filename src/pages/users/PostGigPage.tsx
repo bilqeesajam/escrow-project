@@ -156,18 +156,13 @@ export default function PostGigPage() {
       if (balance < quote.total) { toast.error(`Insufficient balance. Need ${zar(quote.total)}.`); return; }
       setLoading(true);
       try {
-        await backendRequest("/api/gigs/create/", {
+        await backendRequest("/api/gigs/", {
           body: {
             title: title.trim(),
             description: description.trim(),
             location: locationStr,
             category,
-            hours: h,
-            distance_km: d,
-            requested_total: quote.total,
-            cart_value: cartValue ? parseFloat(cartValue) : null,
-            complexity_keys: complexityKeys,
-            override_reason: ""
+            budget: quote.total,
           }
         });
         await refreshProfile();
@@ -189,18 +184,13 @@ export default function PostGigPage() {
       }
       setLoading(true);
       try {
-        await backendRequest("/api/gigs/create/", {
+        await backendRequest("/api/gigs/", {
           body: {
             title: title.trim(),
             description: description.trim(),
             location: locationStr,
             category,
-            hours: 1,
-            distance_km: 0,
-            requested_total: budgetNum,
-            cart_value: null,
-            complexity_keys: [],
-            override_reason: overrideReason.trim()
+            budget: budgetNum,
           }
         });
         await refreshProfile();
