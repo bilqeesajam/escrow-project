@@ -8,6 +8,7 @@ import { toast } from "sonner";
 import {
   Briefcase, Loader2, Search, X, Plus, ChevronRight,
   PlayCircle, CheckCircle2, AlertTriangle, MapPin, Clock,
+  DollarSign,
 } from "lucide-react";
 import type { Tables } from "../../integrations/supabase/types";
 import { formatDistanceToNow } from "date-fns";
@@ -15,7 +16,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "../../components/ui/ta
 
 type Gig = Tables<"gigs">;
 
-// ─── Shared status config ────────────────────────────────────────────────────
 const STATUS_CONFIG: Record<string, { label: string; className: string }> = {
   open:                 { label: "Pending Placement",    className: "bg-amber-500/10  text-amber-500   border border-amber-500/20"  },
   pending_confirmation: { label: "Pending Confirmation", className: "bg-blue-500/10   text-blue-500    border border-blue-500/20"   },
@@ -38,7 +38,6 @@ function StatusPill({ status }: { status: string }) {
 const zar = (n: number) =>
   new Intl.NumberFormat("en-ZA", { style: "currency", currency: "ZAR" }).format(n);
 
-// ─── Tab definitions ─────────────────────────────────────────────────────────
 const TAB_STATUSES: Record<string, string[]> = {
   all:       [],
   active:    ["accepted", "in_progress"],
@@ -54,27 +53,27 @@ const TAB_LABELS: Record<string, string> = {
   disputed:  "Disputed",
 };
 
-// ─── Job card ─────────────────────────────────────────────────────────────────
 interface JobCardProps {
   gig: Gig;
   onView: () => void;
   onStart: () => void;
   onDone: () => void;
+  onRequestRelease: () => void;
   actionLoading: boolean;
+  requestingRelease: boolean;
 }
 
-function JobCard({ gig, onView, onStart, onDone, actionLoading }: JobCardProps) {
+function JobCard({ gig, onView, onStart, onDone, onRequestRelease, actionLoading, requestingRelease }: JobCardProps) {
   const nextAction = (() => {
-    if (gig.status === "accepted")             return { label: "Mark as Started", onClick: onStart, icon: PlayCircle,    variant: "default"  as const };
-    if (gig.status === "in_progress")          return { label: "Mark as Done",    onClick: onDone,  icon: CheckCircle2,  variant: "default"  as const };
-    if (gig.status === "pending_confirmation") return { label: "Enter PIN →",     onClick: onView,  icon: CheckCircle2,  variant: "default"  as const };
+    if (gig.status === "accepted")             return { label: "Mark as Started", onClick: onStart, icon: PlayCircle,   variant: "default" as const };
+    if (gig.status === "in_progress")          return { label: "Mark as Done",    onClick: onDone,  icon: CheckCircle2, variant: "default" as const };
+    if (gig.status === "pending_confirmation") return { label: "Enter PIN →",     onClick: onView,  icon: CheckCircle2, variant: "default" as const };
     return null;
   })();
 
   return (
     <div className="bg-card border border-border rounded-2xl p-5 flex flex-col gap-4 hover:border-primary/30 transition-colors">
 
-      {/* Header */}
       <div className="flex items-start justify-between gap-2">
         <div className="flex-1 min-w-0">
           <h3 className="text-base font-bold text-card-foreground capitalize truncate">{gig.title}</h3>
@@ -93,12 +92,10 @@ function JobCard({ gig, onView, onStart, onDone, actionLoading }: JobCardProps) 
         </div>
       </div>
 
-      {/* Description */}
       {gig.description && (
         <p className="text-sm text-muted-foreground line-clamp-2">{gig.description}</p>
       )}
 
-      {/* "Awaiting client PIN" note */}
       {gig.status === "pending_confirmation" && !gig.client_confirmed && (
         <div className="flex items-center gap-2 rounded-xl bg-blue-500/5 border border-blue-500/20 px-3 py-2 text-xs text-blue-500">
           <Clock className="h-3.5 w-3.5 shrink-0" />
@@ -118,7 +115,23 @@ function JobCard({ gig, onView, onStart, onDone, actionLoading }: JobCardProps) 
         </div>
       )}
 
-      {/* Footer */}
+      {/* ── Request Release button for in_progress gigs ── */}
+      {gig.status === "in_progress" && (
+        <Button
+          size="sm"
+          variant="outline"
+          onClick={onRequestRelease}
+          disabled={requestingRelease}
+          className="w-full border-emerald-500/30 text-emerald-500 hover:bg-emerald-500/10 rounded-xl font-semibold"
+        >
+          {requestingRelease
+            ? <Loader2 className="h-3.5 w-3.5 animate-spin mr-2" />
+            : <DollarSign className="h-3.5 w-3.5 mr-2" />
+          }
+          Request Payment Release
+        </Button>
+      )}
+
       <div className="flex items-center justify-between gap-3 pt-1">
         <span className="flex items-center gap-1 text-xs text-muted-foreground">
           <Clock className="h-3 w-3" />
@@ -156,14 +169,14 @@ function JobCard({ gig, onView, onStart, onDone, actionLoading }: JobCardProps) 
   );
 }
 
-// ─── Page ─────────────────────────────────────────────────────────────────────
 export default function MyJobsPage() {
   const { user } = useAuth();
   const navigate = useNavigate();
 
-  const [gigs, setGigs]           = useState<Gig[]>([]);
-  const [loading, setLoading]     = useState(true);
+  const [gigs, setGigs]               = useState<Gig[]>([]);
+  const [loading, setLoading]         = useState(true);
   const [actionGigId, setActionGigId] = useState<string | null>(null);
+  const [releasingGigId, setReleasingGigId] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
 
   const fetchGigs = () => {
@@ -182,7 +195,6 @@ export default function MyJobsPage() {
 
   useEffect(() => { fetchGigs(); }, [user]);
 
-  // ── In-line actions (mirrors GigDetailPage logic) ─────────────────────────
   const handleStart = async (gig: Gig) => {
     setActionGigId(gig.id);
     const { error } = await supabase.from("gigs").update({ status: "in_progress" as any }).eq("id", gig.id);
@@ -208,7 +220,55 @@ export default function MyJobsPage() {
     setActionGigId(null);
   };
 
-  // ── Filtering ─────────────────────────────────────────────────────────────
+  // ── Request release — calls Django backend ────────────────────────────────
+  const handleRequestRelease = async (gig: Gig) => {
+    setReleasingGigId(gig.id);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const token = session?.access_token;
+      if (!token) { toast.error("Not authenticated."); setReleasingGigId(null); return; }
+
+      // Look up the transaction for this gig
+      const { data: transactions } = await supabase
+        .from("transactions")
+        .select("id")
+        .eq("gig_id", gig.id)
+        .eq("type", "hold")
+        .limit(1);
+
+      if (!transactions || transactions.length === 0) {
+        toast.error("No escrow transaction found for this gig.");
+        setReleasingGigId(null);
+        return;
+      }
+
+      const transactionId = transactions[0].id;
+
+      const response = await fetch(
+        `${import.meta.env.VITE_API_URL}/api/transactions/${transactionId}/request-release/`,
+        {
+          method: "POST",
+          headers: {
+            "Authorization": `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      const data = await response.json();
+      if (!response.ok) {
+        toast.error(data.error ?? "Could not request release.");
+      } else {
+        toast.success("Payment release requested! Waiting for client to confirm.");
+      }
+
+    } catch (err) {
+      toast.error("Something went wrong. Please try again.");
+    }
+
+    setReleasingGigId(null);
+  };
+
   const q = searchQuery.toLowerCase().trim();
   const filteredGigs = gigs.filter(g =>
     !q || g.title.toLowerCase().includes(q) || (g.location ?? "").toLowerCase().includes(q)
@@ -229,7 +289,6 @@ export default function MyJobsPage() {
     <AppLayout>
       <div className="flex flex-col min-h-screen">
 
-        {/* HEADER */}
         <div className="w-full px-6 pt-10 pb-6 text-center">
           <h2 className="text-4xl font-extrabold text-foreground mb-2">My Jobs</h2>
           <p className="text-muted-foreground mb-8">Track and action your active hustles</p>
@@ -238,10 +297,8 @@ export default function MyJobsPage() {
         <div className="w-full px-6">
           <Tabs defaultValue="all" className="w-full">
 
-            {/* TOOLBAR */}
             <div className="flex flex-col md:flex-row items-center justify-between gap-4 mb-10 bg-muted/40 p-2 rounded-2xl border border-border backdrop-blur-sm">
 
-              {/* TABS */}
               <TabsList className="bg-transparent gap-1 h-auto p-0 border-none flex flex-wrap">
                 {Object.keys(TAB_LABELS).map(key => {
                   const count = getTabItems(key).length;
@@ -258,7 +315,6 @@ export default function MyJobsPage() {
                 })}
               </TabsList>
 
-              {/* SEARCH + BROWSE */}
               <div className="flex items-center gap-2 w-full md:w-auto">
                 <div className="relative flex-1 md:w-64">
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -270,10 +326,7 @@ export default function MyJobsPage() {
                     className="w-full bg-background border border-border text-foreground pl-9 pr-8 py-2 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all"
                   />
                   {searchQuery && (
-                    <button
-                      onClick={() => setSearchQuery("")}
-                      className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-                    >
+                    <button onClick={() => setSearchQuery("")} className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">
                       <X className="h-4 w-4" />
                     </button>
                   )}
@@ -288,7 +341,6 @@ export default function MyJobsPage() {
               </div>
             </div>
 
-            {/* TAB CONTENT */}
             {Object.keys(TAB_LABELS).map(key => {
               const items = getTabItems(key);
               return (
@@ -321,7 +373,9 @@ export default function MyJobsPage() {
                           onView={() => navigate(`/gig/${gig.id}`)}
                           onStart={() => handleStart(gig)}
                           onDone={() => handleDone(gig)}
+                          onRequestRelease={() => handleRequestRelease(gig)}
                           actionLoading={actionGigId === gig.id}
+                          requestingRelease={releasingGigId === gig.id}
                         />
                       ))}
                     </div>

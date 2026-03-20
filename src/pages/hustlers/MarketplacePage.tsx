@@ -17,8 +17,6 @@ type Gig = Tables<"gigs">;
 type GigCategory = "errand" | "pickup" | "delivery" | "shopping" | "other";
 type SortKey = "date_desc" | "date_asc" | "price_desc" | "price_asc";
 
-// ─── Constants ────────────────────────────────────────────────────────────────
-
 const CATEGORIES: { value: GigCategory | "all"; label: string; emoji: string }[] = [
   { value: "all",      label: "All",      emoji: "🌐" },
   { value: "errand",   label: "Errand",   emoji: "🏃" },
@@ -37,16 +35,14 @@ const PRICE_RANGES: { label: string; min: number; max: number }[] = [
 ];
 
 const SORT_OPTIONS: { value: SortKey; label: string }[] = [
-  { value: "date_desc",  label: "Newest first"    },
-  { value: "date_asc",   label: "Oldest first"    },
+  { value: "date_desc",  label: "Newest first"      },
+  { value: "date_asc",   label: "Oldest first"      },
   { value: "price_desc", label: "Price: high → low" },
   { value: "price_asc",  label: "Price: low → high" },
 ];
 
 const zar = (n: number) =>
   new Intl.NumberFormat("en-ZA", { style: "currency", currency: "ZAR" }).format(n);
-
-// ─── Category pill ────────────────────────────────────────────────────────────
 
 const CATEGORY_STYLE: Record<string, string> = {
   errand:   "bg-amber-500/10  text-amber-500  border-amber-500/20",
@@ -58,15 +54,12 @@ const CATEGORY_STYLE: Record<string, string> = {
 
 function CategoryBadge({ category }: { category: string }) {
   const style = CATEGORY_STYLE[category] ?? "bg-muted text-muted-foreground border-border";
-  const entry = CATEGORIES.find(c => c.value === category);
   return (
     <span className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[11px] font-semibold border ${style} capitalize`}>
-       {category}
+      {category}
     </span>
   );
 }
-
-// ─── Gig card ─────────────────────────────────────────────────────────────────
 
 interface GigCardProps {
   gig: Gig;
@@ -78,7 +71,6 @@ interface GigCardProps {
 function MarketplaceGigCard({ gig, onAccept, onView, accepting }: GigCardProps) {
   return (
     <div className="bg-card border border-border rounded-2xl p-5 flex flex-col gap-4 hover:border-primary/30 transition-colors">
-      {/* Header */}
       <div className="flex items-start justify-between gap-2">
         <div className="flex-1 min-w-0">
           <h3 className="text-base font-bold text-card-foreground capitalize truncate">{gig.title}</h3>
@@ -97,12 +89,10 @@ function MarketplaceGigCard({ gig, onAccept, onView, accepting }: GigCardProps) 
         </div>
       </div>
 
-      {/* Description */}
       {gig.description && (
         <p className="text-sm text-muted-foreground line-clamp-2">{gig.description}</p>
       )}
 
-      {/* Footer */}
       <div className="flex items-center justify-between gap-3 pt-1">
         <span className="flex items-center gap-1 text-xs text-muted-foreground">
           <Clock className="h-3 w-3" />
@@ -132,20 +122,17 @@ function MarketplaceGigCard({ gig, onAccept, onView, accepting }: GigCardProps) 
   );
 }
 
-// ─── Page ─────────────────────────────────────────────────────────────────────
-
 export default function MarketplacePage() {
   const { user } = useAuth();
   const navigate = useNavigate();
 
-  const [gigs, setGigs]             = useState<Gig[]>([]);
-  const [loading, setLoading]       = useState(true);
+  const [gigs, setGigs]               = useState<Gig[]>([]);
+  const [loading, setLoading]         = useState(true);
   const [acceptingId, setAcceptingId] = useState<string | null>(null);
 
-  // Filter / sort state
   const [search, setSearch]             = useState("");
   const [category, setCategory]         = useState<GigCategory | "all">("all");
-  const [priceRange, setPriceRange]     = useState(0); // index into PRICE_RANGES
+  const [priceRange, setPriceRange]     = useState(0);
   const [sort, setSort]                 = useState<SortKey>("date_desc");
   const [showSortMenu, setShowSortMenu] = useState(false);
 
@@ -163,25 +150,69 @@ export default function MarketplacePage() {
       });
   }, []);
 
+  // ── Accept gig — updates Supabase directly then calls backend to create transaction ──
   const handleAccept = async (gig: Gig) => {
     if (!user) return;
     setAcceptingId(gig.id);
-    const { error } = await supabase
-      .from("gigs")
-      .update({ hustler_id: user.id, status: "accepted" as any })
-      .eq("id", gig.id);
-    if (error) { toast.error("Could not accept gig."); setAcceptingId(null); return; }
-    await supabase.from("notifications").insert({
-      user_id: gig.client_id,
-      message: `Your gig "${gig.title}" was accepted by a hustler.`,
-      gig_id: gig.id,
-    });
-    toast.success("Gig accepted! Check My Jobs.");
-    setGigs(prev => prev.filter(g => g.id !== gig.id));
+
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const token = session?.access_token;
+      if (!token) { toast.error("Not authenticated."); setAcceptingId(null); return; }
+
+      // Step 1 — Update gig status in Supabase directly
+      const { error: gigError } = await supabase
+        .from("gigs")
+        .update({ hustler_id: user.id, status: "accepted" as any })
+        .eq("id", gig.id);
+
+      if (gigError) {
+        toast.error("Could not accept gig.");
+        setAcceptingId(null);
+        return;
+      }
+
+      // Step 2 — Call backend to create the escrow transaction
+      const response = await fetch(
+        `${import.meta.env.VITE_API_URL}/api/transactions/create-from-gig/`,
+        {
+          method: "POST",
+          headers: {
+            "Authorization": `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            gig_id: gig.id,
+            client_id: gig.client_id,
+            amount: Number(gig.pricing_total ?? gig.budget),
+          }),
+        }
+      );
+
+      const data = await response.json();
+
+      // Step 3 — Notify client
+      await supabase.from("notifications").insert({
+        user_id: gig.client_id,
+        message: `Your gig "${gig.title}" was accepted. Please fund escrow to get started.`,
+        gig_id: gig.id,
+      });
+
+      if (data.transaction_id) {
+        toast.success("Gig accepted! Client can now fund escrow.");
+      } else {
+        toast.success("Gig accepted!");
+      }
+
+      setGigs(prev => prev.filter(g => g.id !== gig.id));
+
+    } catch (err) {
+      toast.error("Something went wrong. Please try again.");
+    }
+
     setAcceptingId(null);
   };
 
-  // ── Filtered + sorted results ──────────────────────────────────────────────
   const results = useMemo(() => {
     const range = PRICE_RANGES[priceRange];
     let list = gigs.filter(g => {
@@ -230,7 +261,6 @@ export default function MarketplacePage() {
     <AppLayout>
       <div className="max-w-3xl mx-auto pb-10 space-y-6">
 
-        {/* ── Header ────────────────────────────────────────────────────── */}
         <div className="pt-2">
           <h1 className="text-3xl font-extrabold text-foreground">Marketplace</h1>
           <p className="text-muted-foreground text-sm mt-1">
@@ -238,7 +268,6 @@ export default function MarketplacePage() {
           </p>
         </div>
 
-        {/* ── Search bar ────────────────────────────────────────────────── */}
         <div className="relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
@@ -248,16 +277,12 @@ export default function MarketplacePage() {
             onChange={e => setSearch(e.target.value)}
           />
           {search && (
-            <button
-              onClick={() => setSearch("")}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-            >
+            <button onClick={() => setSearch("")} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">
               <X className="h-4 w-4" />
             </button>
           )}
         </div>
 
-        {/* ── Category pills ────────────────────────────────────────────── */}
         <div className="flex gap-2 flex-wrap">
           {CATEGORIES.map(c => (
             <button
@@ -274,10 +299,7 @@ export default function MarketplacePage() {
           ))}
         </div>
 
-        {/* ── Filter + sort toolbar ─────────────────────────────────────── */}
         <div className="flex flex-wrap items-center gap-2">
-
-          {/* Price range pills */}
           <div className="flex gap-2 flex-wrap">
             {PRICE_RANGES.map((r, i) => (
               <button
@@ -294,7 +316,6 @@ export default function MarketplacePage() {
             ))}
           </div>
 
-          {/* Sort dropdown */}
           <div className="relative ml-auto">
             <button
               onClick={() => setShowSortMenu(v => !v)}
@@ -326,18 +347,13 @@ export default function MarketplacePage() {
             )}
           </div>
 
-          {/* Clear all */}
           {activeFilters > 0 && (
-            <button
-              onClick={clearAll}
-              className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors"
-            >
+            <button onClick={clearAll} className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors">
               <X className="h-3 w-3" /> Clear all
             </button>
           )}
         </div>
 
-        {/* ── Results count ─────────────────────────────────────────────── */}
         {(search || activeFilters > 0) && (
           <p className="text-sm text-muted-foreground -mt-2">
             {results.length} result{results.length !== 1 ? "s" : ""}
@@ -345,7 +361,6 @@ export default function MarketplacePage() {
           </p>
         )}
 
-        {/* ── Gig list ──────────────────────────────────────────────────── */}
         {results.length === 0 ? (
           <div className="text-center py-20">
             <div className="bg-muted w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4">
