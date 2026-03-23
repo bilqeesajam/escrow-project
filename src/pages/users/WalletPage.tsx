@@ -105,7 +105,7 @@ export default function WalletPage() {
       from_user_id: user.id,
       amount: amt,
       type: "refund" as const,   // closest existing txn_type; swap to "withdraw" once enum is added
-      note: "Withdrawal — PayFast integration pending",
+      note: "Withdrawal",
     });
 
     await refreshProfile();
@@ -225,9 +225,6 @@ export default function WalletPage() {
                 onKeyDown={(e) => e.key === "Enter" && handleTopUp()}
               />
             </div>
-            <p className="text-xs text-muted-foreground">
-              PayFast integration coming soon — funds will be added directly for now.
-            </p>
             <Button onClick={handleTopUp} disabled={submitting} className="w-full">
               {submitting && <Loader2 className="h-4 w-4 animate-spin mr-2" />}
               Add Funds
@@ -262,9 +259,6 @@ export default function WalletPage() {
                 <p className="text-xs text-destructive">Amount exceeds your balance.</p>
               )}
             </div>
-            <p className="text-xs text-muted-foreground">
-              PayFast integration coming soon — balance will be deducted immediately for now.
-            </p>
             <Button
               onClick={handleWithdraw}
               disabled={submitting || !amount || parseFloat(amount) > currentBalance}

@@ -179,7 +179,7 @@ export default function MyGigsPage() {
   useEffect(() => {
     const payment = searchParams.get('payment');
     if (payment === 'success') {
-      toast({ title: "Payment Successful! 🎉", description: "Escrow funded. The hustler can now start working on your gig." });
+      toast({ title: "Payment Successful!", description: "Escrow funded. The hustler can now start working on your gig." });
     } else if (payment === 'cancelled') {
       toast({ title: "Payment Cancelled", description: "Your payment was cancelled. You can try again from My Gigs.", variant: "destructive" });
     }

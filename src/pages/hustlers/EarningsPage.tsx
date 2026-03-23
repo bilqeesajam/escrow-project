@@ -74,7 +74,7 @@ export default function EarningsPage() {
       from_user_id: user.id,
       amount: amt,
       type: "refund" as const,   // swap to "withdraw" once enum is extended
-      note: "Earnings withdrawal — PayFast integration pending",
+      note: "Earnings withdrawal",
     });
 
     await refreshProfile();
@@ -210,9 +210,6 @@ export default function EarningsPage() {
                 <p className="text-xs text-destructive">Amount exceeds your balance.</p>
               )}
             </div>
-            <p className="text-xs text-muted-foreground">
-              PayFast integration coming soon — your balance will be deducted immediately for now.
-            </p>
             <Button
               onClick={handleWithdraw}
               disabled={submitting || !withdrawAmount || parseFloat(withdrawAmount) > currentBalance}
