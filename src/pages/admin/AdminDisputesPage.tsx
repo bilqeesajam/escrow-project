@@ -14,7 +14,21 @@ import { backendRequest } from "../../lib/backend";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
-type Dispute = Tables<"disputes">;
+type Dispute = {
+  id: number | string;
+  transaction: string;
+  transaction_reference?: string | null;
+  raised_by: string;
+  raised_by_email?: string | null;
+  reason: string;
+  admin_notes?: string | null;
+  status: string;
+  created_at: string;
+  updated_at: string;
+  resolved_at?: string | null;
+  resolved_by?: string | null;
+  gig_id?: string | null;
+};
 type Gig     = Tables<"gigs">;
 
 type PricingOverride = {
@@ -438,17 +452,24 @@ export default function AdminDisputesPage() {
 
   const fetchDisputes = async () => {
     setDisputesLoading(true);
-    const { data } = await supabase.from("disputes").select("*").order("created_at", { ascending: false });
-    if (data) {
-      const gigIds = [...new Set(data.map(d => d.gig_id).filter(Boolean))] as string[];
+    try {
+      const res = await backendRequest<Dispute[] | { results?: Dispute[]; data?: Dispute[] }>(
+        "/api/disputes/",
+        { method: "GET" }
+      );
+      const list = Array.isArray(res) ? res : (res.results ?? res.data ?? []);
+      const gigIds = [...new Set(list.map(d => d.gig_id).filter(Boolean))] as string[];
       const gigMap: Record<string, Gig> = {};
       if (gigIds.length) {
         const { data: gigs } = await supabase.from("gigs").select("*").in("id", gigIds);
         (gigs ?? []).forEach(g => { gigMap[g.id] = g; });
       }
-      setDisputes(data.map(d => ({ ...d, gig: d.gig_id ? gigMap[d.gig_id] : undefined })));
+      setDisputes(list.map(d => ({ ...d, gig: d.gig_id ? gigMap[d.gig_id] : undefined })));
+    } catch (err: any) {
+      toast.error(err?.message ?? "Failed to load disputes.");
+    } finally {
+      setDisputesLoading(false);
     }
-    setDisputesLoading(false);
   };
 
   const fetchOverrides = async () => {
@@ -472,34 +493,19 @@ export default function AdminDisputesPage() {
     resolution: "resolved_client" | "resolved_hustler",
     notes: string,
   ) => {
-    if (!d.gig) return;
     setResolvingId(d.id);
-    const gig      = d.gig as any;
-    const total    = gig.pricing_total    ?? gig.budget;
-    const subtotal = gig.pricing_subtotal ?? gig.budget;
-    const fee      = gig.pricing_fee      ?? 0;
-
-    await supabase.from("disputes").update({ status: resolution, admin_notes: notes || null, resolved_at: new Date().toISOString() }).eq("id", d.id);
-
-    if (resolution === "resolved_client") {
-      const { data: cp } = await supabase.from("profiles").select("balance").eq("id", gig.client_id).single();
-      await supabase.from("profiles").update({ balance: (cp?.balance ?? 0) + total }).eq("id", gig.client_id);
-      await supabase.from("transactions").insert({ gig_id: gig.id, to_user_id: gig.client_id, amount: total, subtotal_amount: subtotal, fee_amount: fee, total_amount: total, type: "refund" as const });
-      await supabase.from("gigs").update({ status: "cancelled" as any }).eq("id", gig.id);
-      await supabase.from("notifications").insert({ user_id: gig.client_id, message: `Dispute on "${gig.title}" resolved in your favor. Funds refunded.`, gig_id: gig.id });
-      if (gig.hustler_id) await supabase.from("notifications").insert({ user_id: gig.hustler_id, message: `Dispute on "${gig.title}" resolved. Funds returned to client.`, gig_id: gig.id });
-    } else if (gig.hustler_id) {
-      const { data: hp } = await supabase.from("profiles").select("balance").eq("id", gig.hustler_id).single();
-      await supabase.from("profiles").update({ balance: (hp?.balance ?? 0) + subtotal }).eq("id", gig.hustler_id);
-      await supabase.from("transactions").insert({ gig_id: gig.id, to_user_id: gig.hustler_id, from_user_id: gig.client_id, amount: subtotal, subtotal_amount: subtotal, fee_amount: fee, total_amount: total, type: "release" as const });
-      await supabase.from("gigs").update({ status: "completed" as any }).eq("id", gig.id);
-      await supabase.from("notifications").insert({ user_id: gig.hustler_id, message: `Dispute on "${gig.title}" resolved in your favor. Funds released.`, gig_id: gig.id });
-      await supabase.from("notifications").insert({ user_id: gig.client_id, message: `Dispute on "${gig.title}" resolved. Funds released to hustler.`, gig_id: gig.id });
+    try {
+      await backendRequest(`/api/disputes/${d.id}/resolve/`, {
+        method: "PATCH",
+        body: { status: resolution, admin_notes: notes || null },
+      });
+      toast.success("Dispute resolved.");
+      await fetchDisputes();
+    } catch (err: any) {
+      toast.error(err?.message ?? "Failed to resolve dispute.");
+    } finally {
+      setResolvingId(null);
     }
-
-    toast.success("Dispute resolved.");
-    setResolvingId(null);
-    fetchDisputes();
   };
 
   const handleOverrideAction = async (overrideId: string, action: "approve" | "reject") => {
