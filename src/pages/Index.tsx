@@ -33,6 +33,10 @@ const faqData = [
 ];
 const faqCategories = ["Getting Started", "Payments & Payouts", "Changes & Modifications", "Disputes & Fees"];
 
+const navLinkClass =
+    "relative hover:text-primary transition-colors before:absolute before:bottom-[-4px] before:left-0 before:h-[2px] before:w-0 before:bg-primary before:transition-[width] before:duration-300 hover:before:w-full";
+
+
 export default function Index() {
   const { user } = useAuth();
   const { theme, toggleTheme } = useTheme();
@@ -79,10 +83,10 @@ export default function Index() {
             transition-all duration-400 ease-in-out
             pointer-events-none group-hover:pointer-events-auto whitespace-nowrap
           ">
-            <button onClick={() => scrollTo("how-it-works")} className="hover:text-foreground transition-colors">How it works</button>
-            <button onClick={() => scrollTo("features")}     className="hover:text-foreground transition-colors">Features</button>
-            <button onClick={() => scrollTo("faq")}          className="hover:text-foreground transition-colors">FAQ</button>
-            <Link to="/pricing"                              className="hover:text-foreground transition-colors">Pricing</Link>
+            <button onClick={() => scrollTo("how-it-works")} className={navLinkClass}>How it works</button>
+            <button onClick={() => scrollTo("features")}     className={navLinkClass}>Features</button>
+            <button onClick={() => scrollTo("faq")}          className={navLinkClass}>FAQ</button>
+            <Link to="/pricing"                              className={navLinkClass}>Pricing</Link>
           </div>
 
           {/* Right */}
